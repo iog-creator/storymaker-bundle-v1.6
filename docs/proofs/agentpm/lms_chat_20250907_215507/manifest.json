@@ -1,0 +1,15 @@
+{
+  "name": "lms_chat_20250907_215507",
+  "dir": "/home/mccoy/Projects/StoryMaker/storymaker-bundle-v1.6-unified-full (1)/docs/proofs/agentpm/lms_chat_20250907_215507",
+  "git_head": "2e95cfc74a78a43cb51962ea40092fadc9578652",
+  "artifacts": [
+    {
+      "file": "envelope.json",
+      "sha256": "70746a5a6a7f8398c57535daabe26fdb90deea3c9d1e07a0ac77ad0454e61d3d"
+    },
+    {
+      "file": "side_effects.txt",
+      "sha256": "8e7ef1bd4e1b99dff205a85ade10031143875c88e3d730367053b4c572bb9c05"
+    }
+  ]
+}

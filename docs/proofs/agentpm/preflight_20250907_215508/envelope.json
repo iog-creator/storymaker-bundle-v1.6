@@ -1,0 +1,28 @@
+{
+  "data": {
+    "preflight": true
+  },
+  "error": {
+    "details": {},
+    "message": "missing_lm_models; ssot_presence_mismatch; commit_hygiene_pass_fail"
+  },
+  "meta": {
+    "checks": [
+      "lm_chat=ok",
+      "commit_hygiene_ok"
+    ],
+    "proofs": [
+      "step:lm_chat"
+    ],
+    "reasons": [
+      "missing_lm_models",
+      "ssot_presence_mismatch",
+      "commit_hygiene_pass_fail"
+    ],
+    "scope": [
+      "scripts/preflight_gate.sh"
+    ],
+    "smoke_score": 1.0
+  },
+  "status": "error"
+}

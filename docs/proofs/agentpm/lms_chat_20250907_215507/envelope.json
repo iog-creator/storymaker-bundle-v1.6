@@ -1,0 +1,27 @@
+{
+  "data": {
+    "base": "http://127.0.0.1:1234/v1",
+    "model": "qwen/qwen3-4b-2507",
+    "preview": "pong"
+  },
+  "error": {
+    "details": {},
+    "message": ""
+  },
+  "meta": {
+    "checks": [
+      "chat_reply_nonempty"
+    ],
+    "proofs": [
+      "len=4"
+    ],
+    "reasons": [
+      ""
+    ],
+    "scope": [
+      "scripts/lmstudio_chat_smoke.sh"
+    ],
+    "smoke_score": 0.0
+  },
+  "status": "success"
+}

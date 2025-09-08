@@ -25,9 +25,8 @@ models_response=$(curl -sS -m 8 -H "Authorization: Bearer $API_KEY" "$API_BASE/m
 count=$(echo "$models_response" | jq -r '.data | length' 2>/dev/null || echo "0")
 
 if [[ "$count" -gt 0 ]]; then
-    # Get models as a proper JSON array without newlines
-    models_array=$(echo "$models_response" | jq -c '[.data[].id]' 2>/dev/null || echo '[]')
-    echo "{\"status\":\"success\",\"data\":{\"count\":$count,\"models\":$models_array},\"error\":{\"message\":\"\"},\"meta\":{\"smoke_score\":0.0,\"reasons\":[\"models_found\"],\"scope\":[\"lmstudio_models\"],\"checks\":[\"count_ok\"],\"proofs\":[\"lm_studio_models\"]}}"
+    models_json=$(echo "$models_response" | jq -c '.data[].id' 2>/dev/null | jq -s . || echo '[]')
+    echo "{\"status\":\"success\",\"data\":{\"count\":$count,\"models\":$models_json},\"error\":{\"message\":\"\"},\"meta\":{\"smoke_score\":0.0,\"reasons\":[\"models_found\"],\"scope\":[\"lmstudio_models\"],\"checks\":[\"count_ok\"],\"proofs\":[\"lm_studio_models\"]}}"
 else
     echo '{"status":"error","data":{"count":0},"error":{"message":"No models loaded in LM Studio"},"meta":{"smoke_score":1.0,"reasons":["no_models"],"scope":["lmstudio_models"],"checks":[],"proofs":[]}}'
 fi

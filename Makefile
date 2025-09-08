@@ -11,6 +11,36 @@ setup:
 	corepack prepare pnpm@9.0.0 --activate || true
 	@echo 'Setup complete'
 
+# === User-Friendly Bootstrap ===
+.PHONY: start stop status help
+start:
+	@bash scripts/bootstrap.sh start
+
+stop:
+	@bash scripts/bootstrap.sh stop
+
+status:
+	@bash scripts/bootstrap.sh status
+
+help:
+	@echo "StoryMaker - AI-Powered Creative Writing Platform"
+	@echo ""
+	@echo "Quick Start:"
+	@echo "  make start     - Start StoryMaker (one command)"
+	@echo "  make status    - Check if everything is running"
+	@echo "  make stop      - Stop all services"
+	@echo ""
+	@echo "Development:"
+	@echo "  make setup     - Install development tools"
+	@echo "  make test      - Run tests"
+	@echo "  make restart   - Restart services"
+	@echo ""
+	@echo "Advanced:"
+	@echo "  make verify-all - Run full verification suite"
+	@echo "  make logs      - View service logs"
+	@echo ""
+	@echo "For new users, just run: make start"
+
 # === Auto-configure Real Services ===
 setup-real:
 	@echo "🔧 Auto-configuring real services (disabling mock mode)..."
@@ -28,11 +58,22 @@ api.up:
 	$(MAKE) setup-real
 	$(MAKE) db.migrate
 	uv venv --clear && uv pip install -r requirements-dev.txt
-	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} uv run uvicorn services.worldcore.main:app --port 8000 --reload &
-	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} uv run uvicorn services.narrative.main:app --port 8001 --reload &
-	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} uv run uvicorn services.screenplay.main:app --port 8002 --reload &
-	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} uv run uvicorn services.media.main:app --port 8003 --reload &
-	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} uv run uvicorn services.interact.main:app --port 8004 --reload &
+	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} bash scripts/start_service.sh worldcore 8000 "uv run uvicorn services.worldcore.main:app --port 8000 --reload"
+	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} bash scripts/start_service.sh narrative 8001 "uv run uvicorn services.narrative.main:app --port 8001 --reload"
+	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} bash scripts/start_service.sh screenplay 8002 "uv run uvicorn services.screenplay.main:app --port 8002 --reload"
+	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} bash scripts/start_service.sh media 8003 "uv run uvicorn services.media.main:app --port 8003 --reload"
+	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} bash scripts/start_service.sh interact 8004 "uv run uvicorn services.interact.main:app --port 8004 --reload"
+
+.PHONY: api.down api.restart
+api.down:
+	@echo "Stopping services on 8000-8004 if present..."
+	@bash scripts/kill_by_port.sh 8000 || true
+	@bash scripts/kill_by_port.sh 8001 || true
+	@bash scripts/kill_by_port.sh 8002 || true
+	@bash scripts/kill_by_port.sh 8003 || true
+	@bash scripts/kill_by_port.sh 8004 || true
+
+api.restart: api.down api.up
 
 seed.world:
 	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} uv run python -m services.worldcore.seed docs/seeds/*.json

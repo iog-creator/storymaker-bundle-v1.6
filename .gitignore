@@ -9,3 +9,4 @@ dist/
 coverage*
 reports/
 site/
+.agentpm_workspace/

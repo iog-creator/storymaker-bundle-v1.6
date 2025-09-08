@@ -1,0 +1,15 @@
+{
+  "name": "preflight_20250907_215508",
+  "dir": "/home/mccoy/Projects/StoryMaker/storymaker-bundle-v1.6-unified-full (1)/docs/proofs/agentpm/preflight_20250907_215508",
+  "git_head": "2e95cfc74a78a43cb51962ea40092fadc9578652",
+  "artifacts": [
+    {
+      "file": "envelope.json",
+      "sha256": "3b537243cedbf37595510cfb76818f28b10cd9c8105e50db5f008b642ec5c973"
+    },
+    {
+      "file": "side_effects.txt",
+      "sha256": "589515cba3edf39c02a789df0c12d1f2b6de88bba17137c431dd3cc4f78ec4c4"
+    }
+  ]
+}
