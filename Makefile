@@ -130,7 +130,7 @@ proofs-guard:
 rules-guard:
 	@bash ci/rules_presence_guard.sh
 
-guards: ci-perms rules-sync
+guards: ci-perms
 	./ci/env_config_guard.sh
 	./ci/no_mocks_env_guard.sh
 	./ci/provider_split_guard.sh
