@@ -1,10 +1,10 @@
-# StoryMaker v1.6 + AgentPM Prototype
+# AgentPM Prototype
 
-**AI-Powered Creative Writing Platform with Local-First AI Project Management**
+**Local-First AI Project Management System**
 
-StoryMaker helps authors, screenwriters, and content creators build rich narratives with AI assistance. It provides world-building tools, character development, plot generation, and screenplay formatting.
+AgentPM is a prototype system for local-first AI project management that provides quality gates, verification pipelines, and proof capture capabilities. This repository serves as the development and testing environment for the AgentPM prototype.
 
-**This repository also serves as a real-world testbed for the AgentPM prototype system** - a local-first AI project management platform that provides quality gates, verification pipelines, and proof capture capabilities.
+**Note**: This repository uses StoryMaker as a testbed application for validating AgentPM capabilities, but StoryMaker itself is a separate, classified project.
 
 ## 🚀 Quick Start (2 Minutes)
 
@@ -18,38 +18,40 @@ StoryMaker helps authors, screenwriters, and content creators build rich narrati
 2. Load any chat model (e.g., `qwen/qwen3-4b-2507`)
 3. Click "Start Server" (should show port 1234)
 
-### Step 2: Start StoryMaker
+### Step 2: Start AgentPM
 ```bash
 git clone https://github.com/iog-creator/storymaker-bundle-v1.6.git
 cd storymaker-bundle-v1.6-unified-full
 make start
 ```
 
-That's it! StoryMaker will automatically:
+That's it! AgentPM will automatically:
 - ✅ Check LM Studio connection
-- ✅ Start the database
+- ✅ Start the testbed application
 - ✅ Start all services
 - ✅ Verify everything works
 
-### Step 3: Use StoryMaker
-- **Web Interface**: http://localhost:3000
+### Step 3: Use AgentPM
+- **Testbed Application**: http://localhost:3000
 - **API Endpoints**: http://localhost:8000-8004
 
-## 📖 What StoryMaker Does
+## 📖 What AgentPM Does
 
-### Core Services
+### Core Features
+- **Local-First AI**: No cloud dependencies, full privacy
+- **Quality Gates**: Multi-step verification and validation
+- **Envelope System**: Consistent JSON response format
+- **Proof Capture**: Automatic audit trail for all operations
+- **LM Studio Integration**: Local AI models for all operations
+
+### Testbed Application Services
 - **Worldcore** (port 8000): World building, lore, and universe management
 - **Narrative** (port 8001): Story generation, plot development, and pacing
 - **Screenplay** (port 8002): Script formatting, dialogue, and scene structure
 - **Media** (port 8003): Image generation and multimedia content
 - **Interact** (port 8004): User interactions and chat interface
 
-### Key Features
-- **AI-Powered Writing**: Generate stories, characters, and dialogue
-- **World Building**: Create rich, consistent fictional universes
-- **Screenplay Formatting**: Industry-standard script formatting
-- **Character Development**: Deep character creation and management
-- **Plot Generation**: Intelligent story structure and pacing
+*Note: The testbed application is used to validate AgentPM capabilities but is a separate, classified project.*
 
 ## 🛠️ Common Commands
 
@@ -99,12 +101,13 @@ make verify-all # Full verification suite
 ```
 
 ### Architecture
-StoryMaker uses a microservices architecture with:
+AgentPM uses a microservices architecture with:
 - **FastAPI** services for each domain
 - **PostgreSQL** for data persistence
 - **Redis** for caching
 - **LM Studio** for AI capabilities
-- **AgentPM** for quality assurance
+- **Envelope System** for response validation
+- **Quality Gates** for verification pipelines
 
 ## 📄 License
 
@@ -122,27 +125,21 @@ This project is licensed under a **Non-Commercial Personal Use License** - see t
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### AgentPM Prototype Development
-This repository serves as a testbed for the AgentPM prototype system. If you're interested in contributing to AgentPM development:
+### AgentPM Development
+This repository serves as the development environment for the AgentPM prototype system. If you're interested in contributing to AgentPM development:
 - Check [AGENTPM_DEVELOPMENT.md](AGENTPM_DEVELOPMENT.md) for current status
 - Review [cursor_handoff_build_run_v_1.md](cursor_handoff_build_run_v_1.md) for development guidelines
 - Run `make verify-all` to test the AgentPM system
 
-## 🌟 Features
+## 🌟 AgentPM Features
 
-### StoryMaker
-- **AI-Powered Writing**: Generate stories, characters, and dialogue
-- **World Building**: Create rich, consistent fictional universes
-- **Screenplay Formatting**: Industry-standard script formatting
-- **Character Development**: Deep character creation and management
-- **Plot Generation**: Intelligent story structure and pacing
-
-### AgentPM Prototype
 - **Local-First AI**: No cloud dependencies, full privacy
 - **Quality Gates**: Multi-step verification and validation
 - **Envelope System**: Consistent JSON response format
 - **Proof Capture**: Automatic audit trail for all operations
 - **LM Studio Integration**: Local AI models for all operations
+- **Bootstrap System**: One-command setup and health checks
+- **User Documentation**: Clear guides for different user levels
 
 ---
 

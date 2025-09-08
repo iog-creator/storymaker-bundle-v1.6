@@ -1,10 +1,12 @@
-# Cursor Handoff — Build & Run (v1.6) + AgentPM Prototype
+# Cursor Handoff — AgentPM Prototype Development
 
-This is the **single source of truth** for spinning up StoryMaker locally with Cursor (or any coding agent that reads `AGENTS.md`). It is aligned with **StoryMaker SRS v1.1** and our **OpenAPI 3.1**. **Postgres 17 is REQUIRED** (no in-memory fallback). `make api.up` **auto-runs DB migration** before services start.
+This is the **single source of truth** for developing and testing the AgentPM prototype system with Cursor (or any coding agent that reads `AGENTS.md`). **Postgres 17 is REQUIRED** (no in-memory fallback). `make api.up` **auto-runs DB migration** before services start.
 
 ## 🚀 AgentPM Prototype Status
 
-**This repository serves as a real-world testbed for the AgentPM prototype system.** StoryMaker is the application being used to validate AgentPM's capabilities in a production-like environment.
+**This repository serves as the development environment for the AgentPM prototype system.** A testbed application is used to validate AgentPM's capabilities in a production-like environment.
+
+**Important**: The testbed application is a separate, classified project and should not be discussed or documented as part of AgentPM.
 
 ### AgentPM Core Features (✅ WORKING)
 - **Local-First AI**: LM Studio integration with 22 models loaded
