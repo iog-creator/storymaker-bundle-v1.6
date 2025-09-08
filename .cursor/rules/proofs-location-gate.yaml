@@ -1,0 +1,8 @@
+name: proofs-location-gate
+description: 'Contract: Evidence lives only in the canonical path.'
+alwaysApply: false
+globs:
+- docs/proofs/**
+- '**/proofs/**'
+notes:
+- Emit all envelopes under docs/proofs/agentpm/. Move strays there.

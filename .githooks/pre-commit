@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
+python3 scripts/mdc_to_cursor_rules.py
 make guards

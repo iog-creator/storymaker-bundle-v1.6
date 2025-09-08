@@ -138,7 +138,11 @@ guards: ci-perms rules-sync
 	./ci/ssot_guard.sh
 	./ci/rules_presence_guard.sh
 
-verify: guards
+.PHONY: rules-emit
+rules-emit:
+	@python3 scripts/mdc_to_cursor_rules.py
+
+verify: rules-emit guards
 	@echo "All guards passed."
 
 .PHONY: smoke-provider-split
