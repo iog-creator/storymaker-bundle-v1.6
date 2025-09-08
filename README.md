@@ -108,9 +108,15 @@ StoryMaker uses a microservices architecture with:
 
 ## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a **Non-Commercial Personal Use License** - see the [LICENSE](LICENSE) file for details.
 
 **Copyright (c) 2024 Bryon McCoy (mccoyb00@gmail.com)**
+
+### License Summary:
+- ✅ **Personal, non-commercial use** is permitted
+- ❌ **Commercial use** is prohibited without explicit written agreement
+- 📧 **Contact**: mccoyb00@gmail.com for commercial use permissions
+- 📄 **Distribution**: This license must be included with all distributions
 
 ## 🤝 Contributing
 
