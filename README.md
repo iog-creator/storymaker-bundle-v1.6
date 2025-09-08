@@ -1,8 +1,10 @@
-# StoryMaker v1.6
+# StoryMaker v1.6 + AgentPM Prototype
 
-**AI-Powered Creative Writing Platform**
+**AI-Powered Creative Writing Platform with Local-First AI Project Management**
 
 StoryMaker helps authors, screenwriters, and content creators build rich narratives with AI assistance. It provides world-building tools, character development, plot generation, and screenplay formatting.
+
+**This repository also serves as a real-world testbed for the AgentPM prototype system** - a local-first AI project management platform that provides quality gates, verification pipelines, and proof capture capabilities.
 
 ## 🚀 Quick Start (2 Minutes)
 
@@ -18,7 +20,7 @@ StoryMaker helps authors, screenwriters, and content creators build rich narrati
 
 ### Step 2: Start StoryMaker
 ```bash
-git clone <this-repo>
+git clone https://github.com/iog-creator/storymaker-bundle-v1.6.git
 cd storymaker-bundle-v1.6-unified-full
 make start
 ```
@@ -77,7 +79,13 @@ make help       # Show all commands
 
 ## 📚 Documentation
 
-- **[Quick Start Guide](QUICK_START.md)** - For new users
+### For Users
+- **[Quick Start Guide](QUICK_START.md)** - 5-minute setup guide
+- **[User Guide](USER_GUIDE.md)** - Non-technical guide for writers and authors
+
+### For Developers
+- **[AgentPM Development](AGENTPM_DEVELOPMENT.md)** - Prototype development status and testing
+- **[Cursor Handoff](cursor_handoff_build_run_v_1.md)** - Complete development handoff
 - **[API Documentation](docs/openapi/storymaker.core.yaml)** - Technical API docs
 - **[Contributing Guide](CONTRIBUTING.md)** - For developers
 
@@ -100,11 +108,35 @@ StoryMaker uses a microservices architecture with:
 
 ## 📄 License
 
-See [LICENSE](LICENSE) for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+**Copyright (c) 2024 Bryon McCoy (mccoyb00@gmail.com)**
 
 ## 🤝 Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+### AgentPM Prototype Development
+This repository serves as a testbed for the AgentPM prototype system. If you're interested in contributing to AgentPM development:
+- Check [AGENTPM_DEVELOPMENT.md](AGENTPM_DEVELOPMENT.md) for current status
+- Review [cursor_handoff_build_run_v_1.md](cursor_handoff_build_run_v_1.md) for development guidelines
+- Run `make verify-all` to test the AgentPM system
+
+## 🌟 Features
+
+### StoryMaker
+- **AI-Powered Writing**: Generate stories, characters, and dialogue
+- **World Building**: Create rich, consistent fictional universes
+- **Screenplay Formatting**: Industry-standard script formatting
+- **Character Development**: Deep character creation and management
+- **Plot Generation**: Intelligent story structure and pacing
+
+### AgentPM Prototype
+- **Local-First AI**: No cloud dependencies, full privacy
+- **Quality Gates**: Multi-step verification and validation
+- **Envelope System**: Consistent JSON response format
+- **Proof Capture**: Automatic audit trail for all operations
+- **LM Studio Integration**: Local AI models for all operations
 
 ---
 
