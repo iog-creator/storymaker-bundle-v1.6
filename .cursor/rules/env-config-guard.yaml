@@ -1,9 +1,0 @@
-name: env-config-guard
-description: 'Contract: Environment must be fully specified; missing keys block runs.'
-alwaysApply: false
-globs:
-- .env
-- .env.*
-notes:
-- Ensure OPENAI_API_BASE=http://127.0.0.1:1234/v1, OPENAI_API_KEY=lm-studio, EMBEDDING_DIMS=1024,
-  GROQ_* present.
