@@ -1,0 +1,13 @@
+{
+  "id": "p_heaven",
+  "type": "Place",
+  "name": "Heaven",
+  "status": "CANON",
+  "traits": {
+    "habitat": {
+      "biome": "celestial",
+      "climate": "timeless"
+    }
+  },
+  "world_id": "w_angels"
+}

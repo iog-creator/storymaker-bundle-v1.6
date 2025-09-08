@@ -1,0 +1,19 @@
+
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE IF NOT EXISTS entities (
+  id TEXT PRIMARY KEY,
+  cid TEXT,
+  type TEXT NOT NULL,
+  name TEXT NOT NULL,
+  status TEXT NOT NULL,
+  traits JSONB NOT NULL DEFAULT '{}'::jsonb,
+  world_id TEXT,
+  canon_version INT NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS proposals (
+  cid TEXT PRIMARY KEY,
+  payload JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

@@ -1,0 +1,7 @@
+- DB gate
+- Idempotent approve
+- Temporal guard sanity
+- Promise/Payoff orphans flagged
+- Trope Budget enforced
+- NPC WS draft-only
+- Screenplay artifact envelope

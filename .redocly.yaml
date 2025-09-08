@@ -1,0 +1,3 @@
+apis:
+  storymaker:
+    root: docs/openapi/storymaker.core.yaml

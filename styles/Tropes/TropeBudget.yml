@@ -1,0 +1,6 @@
+extends: existence
+message: "Trope overuse: '%s'"
+level: error
+tokens:
+  - chosen one
+  - ancient prophecy

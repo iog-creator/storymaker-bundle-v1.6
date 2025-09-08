@@ -1,0 +1,61 @@
+# AgentPM Makefile Improvements
+# Add these improvements to the existing Makefile
+
+# === Non-Interactive Flags ===
+# Replace all "uv venv" with "uv venv --clear" to prevent interactive prompts
+# Replace all "uv pip install" with "uv pip install --no-input" for non-interactive mode
+
+# Example improvements:
+db.migrate:
+	uv venv --clear && uv pip install --no-input psycopg[binary] && \
+	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} \
+	uv run python scripts/db_migrate.py sql/001_init.sql
+
+# === Timeout Handling ===
+# Add timeout to long-running operations
+api.up:
+	timeout 60 $(MAKE) db.migrate
+	uv venv --clear && uv pip install --no-input -r requirements-dev.txt
+	# ... rest of service startup
+
+# === Mock Mode Support ===
+# Add mock mode targets
+.PHONY: mock-mode real-mode
+
+mock-mode:
+	@echo "Enabling mock mode..."
+	@sed -i 's/MOCK_LMS=0/MOCK_LMS=1/' .env || echo "MOCK_LMS=1" >> .env
+	@echo "Mock mode enabled. Set MOCK_LMS=0 to return to real mode."
+
+real-mode:
+	@echo "Enabling real mode..."
+	@sed -i 's/MOCK_LMS=1/MOCK_LMS=0/' .env || echo "MOCK_LMS=0" >> .env
+	@echo "Real mode enabled. Ensure LM Studio is running."
+
+# === Better Error Handling ===
+# Add cleanup targets
+.PHONY: cleanup-hanging cleanup-all
+
+cleanup-hanging:
+	@echo "Cleaning up hanging processes..."
+	@pkill -f uvicorn || true
+	@pkill -f "scripts/run.sh" || true
+	@echo "Cleanup complete."
+
+cleanup-all: cleanup-hanging
+	@echo "Full cleanup..."
+	@docker compose down || true
+	@rm -rf .venv || true
+	@echo "Full cleanup complete."
+
+# === Development Helpers ===
+.PHONY: dev-setup dev-reset
+
+dev-setup: mock-mode
+	@echo "Setting up development environment..."
+	@$(MAKE) setup
+	@$(MAKE) db.up
+	@echo "Development setup complete. Run 'make api.up' to start services."
+
+dev-reset: cleanup-all dev-setup
+	@echo "Development environment reset complete."

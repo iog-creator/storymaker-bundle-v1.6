@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "id",
+    "type",
+    "name",
+    "status",
+    "traits"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "type": {
+      "enum": [
+        "World",
+        "Place",
+        "Culture",
+        "Faction",
+        "Character",
+        "Item",
+        "Event"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "DRAFT",
+        "CANON"
+      ]
+    },
+    "traits": {
+      "type": "object"
+    },
+    "world_id": {
+      "type": "string"
+    }
+  }
+}

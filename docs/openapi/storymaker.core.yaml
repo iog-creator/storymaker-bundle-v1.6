@@ -1,0 +1,50 @@
+
+openapi: 3.1.0
+info: { title: StoryMaker Core API, version: 1.6.0 }
+servers: [ { url: http://localhost:8000 } ]
+paths:
+  /health:
+    get:
+      summary: WorldCore health (DB-gated)
+      responses:
+        '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } } }
+  /propose:
+    post:
+      summary: Propose (DRAFT)
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Entity' } } } }
+      responses: { '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } } } }
+  /approve:
+    post:
+      summary: Approve by CID (idempotent)
+      requestBody: { required: true, content: { application/json: { schema: { type: object, required: [cid], properties: { cid: { type: string } } } } } }
+      responses: { '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } } } }
+  /canon/entity/{id}:
+    get:
+      summary: Canon snapshot
+      parameters: [ { in: path, name: id, required: true, schema: { type: string } } ]
+      responses: { '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } } } }
+  /graph:
+    get:
+      summary: Graph query
+      parameters: [ { in: query, name: world_id, schema: { type: string } }, { in: query, name: q, schema: { type: string } } ]
+      responses: { '200': { description: ok, content: { application/json: { schema: { $ref: '#/components/schemas/Envelope' } } } } }
+components:
+  schemas:
+    Envelope:
+      type: object
+      required: [status, meta]
+      properties:
+        status: { type: string, enum: [ok, error] }
+        data: { type: object }
+        error: { type: object, nullable: true, properties: { code: { type: string }, message: { type: string }, details: { type: object } } }
+        meta: { type: object, required: [ts], properties: { ts: { type: string, format: date-time }, actor: { type: string }, world_id: { type: string }, cid: { type: string } } }
+    Entity:
+      type: object
+      required: [id, type, name, status, traits]
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [World, Place, Culture, Faction, Character, Item, Event] }
+        name: { type: string }
+        status: { type: string, enum: [DRAFT, CANON] }
+        traits: { type: object }
+        world_id: { type: string }

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydantic==2.8.2
+pytest
+ruff
+black
+mypy
+proselint
+jsonschema==4.23.0
+psycopg[binary]>=3.2.1

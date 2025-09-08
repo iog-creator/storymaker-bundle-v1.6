@@ -1,0 +1,2 @@
+- Prose: avoid passive; clichés ≤2/1k.
+- Python: ruff+black+mypy.

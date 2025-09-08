@@ -1,0 +1,8 @@
+{
+  "id": "p_harbor",
+  "type": "Place",
+  "name": "Harbor of Lumen",
+  "status": "DRAFT",
+  "traits": {},
+  "world_id": "w_eldershore"
+}

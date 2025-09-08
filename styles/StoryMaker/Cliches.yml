@@ -1,0 +1,6 @@
+extends: existence
+message: "Cliché: '%s'"
+level: error
+tokens:
+  - chosen one
+  - ancient prophecy
