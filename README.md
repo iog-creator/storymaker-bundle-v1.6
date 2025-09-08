@@ -118,7 +118,7 @@ This project is licensed under a **Non-Commercial Personal Use License** - see t
 ### License Summary:
 - ✅ **Personal, non-commercial use** is permitted
 - ❌ **Commercial use** is prohibited without explicit written agreement
-- 📧 **Contact**: mccoyb00@gmail.com for commercial use permissions
+- 📧 **Contact**: mccoyb00@gmail.com, 📞 203-989-0875, or 💼 [LinkedIn](https://www.linkedin.com/in/bryon-m-00979462) for commercial use permissions
 - 📄 **Distribution**: This license must be included with all distributions
 
 ## 🤝 Contributing
