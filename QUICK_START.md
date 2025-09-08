@@ -1,42 +1,56 @@
 # StoryMaker Quick Start Guide
 
-## For New Users (5 Minutes to Running)
+## For New Users (Zero Manual Intervention)
 
-### Step 1: Start LM Studio
-1. Open LM Studio
-2. Load any chat model (e.g., `qwen/qwen3-4b-2507`)
-3. Start the server (it should show "Server running on http://127.0.0.1:1234")
-
-### Step 2: Run StoryMaker
+### **One-Command Setup**
 ```bash
-# One command to start everything
-make start
+git clone https://github.com/iog-creator/storymaker-bundle-v1.6.git
+cd storymaker-bundle-v1.6-unified-full
+make bootstrap
 ```
 
-That's it! StoryMaker will:
-- ✅ Check if LM Studio is running
-- ✅ Start the database
-- ✅ Start all services
-- ✅ Verify everything is working
+**That's it!** The system automatically:
+- ✅ Sets up environment and configuration
+- ✅ Starts all infrastructure (Docker services)
+- ✅ Detects and integrates with LM Studio
+- ✅ Initializes AgentPM workspace
+- ✅ Syncs rules and enforces guardrails
+- ✅ Verifies everything is working
 
-### Step 3: Access StoryMaker
+### **Start Using StoryMaker**
+```bash
+# Start all services
+make start
+
+# Check status
+make status
+```
+
+### **Access StoryMaker**
 - **Web UI**: http://localhost:3000
 - **API**: http://localhost:8000-8004
+- **Verification**: `make verify-all`
 
 ## Troubleshooting
 
+### "Bootstrap failed"
+- Check Docker is running: `docker ps`
+- Verify internet connection for model downloads
+- Run `make bootstrap` again (idempotent)
+
 ### "LM Studio not found"
-- Make sure LM Studio is running
-- Check that the server is on port 1234
-- Try: `curl http://127.0.0.1:1234/v1/models`
+- Download from [lmstudio.ai](https://lmstudio.ai)
+- Load Qwen chat + embedding models
+- Start server on port 1234
+- System works without LM Studio but with limited AI features
 
 ### "Database connection failed"
-- Run: `make db.setup`
-- This will start the database and run migrations
+- Run: `docker compose up -d db redis minio`
+- Check services: `docker compose ps`
 
 ### "Services won't start"
 - Run: `make restart`
-- This will stop and restart all services
+- Check logs: `docker compose logs`
 
 ## What Each Service Does
 

@@ -1,0 +1,8 @@
+---
+name: env_config_guard
+steps:
+  - .env contains Groq + LM Studio + models + dims
+policy: fail-closed
+owner: PM
+---
+Contract: Environment must be fully specified; missing keys block runs.

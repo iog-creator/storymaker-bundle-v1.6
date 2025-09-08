@@ -2,3 +2,4 @@
 !.env.example
 !.envrc.example
 !.env.model-config
+!.env.config

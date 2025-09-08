@@ -1,0 +1,12 @@
+name: SSOT Guard
+on:
+  pull_request:
+  push:
+    branches: [ main, master ]
+jobs:
+  ssot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify MASTER_PLAN exists and is non-empty
+        run: bash ci/ssot_guard.sh

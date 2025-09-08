@@ -1,0 +1,9 @@
+---
+name: provider_split_gate
+steps:
+  - narrative uses GROQ_MODEL on Groq
+  - embeddings/rerank use LM Studio via OPENAI_API_BASE
+policy: fail-closed
+owner: PM
+---
+Contract: Clear separation of creative vs retrieval providers.

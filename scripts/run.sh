@@ -18,15 +18,24 @@ if [[ -f scripts/lib/db_url_env.sh ]]; then
   source scripts/lib/db_url_env.sh
 fi
 
-# 3) Guard: validate required variables & local-first
+# 3) No-mocks guard: enforce real services only (MUST be first)
+if [[ -f scripts/lib/no_mocks_guard.sh ]]; then
+  # shellcheck disable=SC1091
+  source scripts/lib/no_mocks_guard.sh
+fi
+
+# 4) Guard: validate required variables & local-first
 if [[ -f scripts/lib/config_guard.sh ]]; then
   # shellcheck disable=SC1091
   source scripts/lib/config_guard.sh
 fi
 
-# 4) Policy gates (keep a few quick ones)
-[[ "${OPENAI_API_BASE}" == "http://127.0.0.1:1234/v1" ]] || [[ "${MOCK_LMS:-}" == "1" ]] || { echo "OPENAI_API_BASE must be local (or set MOCK_LMS=1)"; exit 1; }
+# 5) Policy gates (keep a few quick ones)
+[[ "${OPENAI_API_BASE}" == "http://127.0.0.1:1234/v1" ]] || {
+  echo "OPENAI_API_BASE must be local" >&2
+  exit 1
+}
 [[ "${EMBEDDING_DIMS:-}" == "1024" ]] || { echo "EMBEDDING_DIMS must be 1024"; exit 1; }
 
-# 5) Run the requested command under this normalized env
+# 6) Run the requested command under this normalized env
 exec "$@"

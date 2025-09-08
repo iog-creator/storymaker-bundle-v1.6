@@ -1,0 +1,9 @@
+---
+name: no_mocks_gate
+steps:
+  - DISABLE_MOCKS=1
+  - MOCK_LMS=0
+policy: fail-closed
+owner: PM
+---
+Contract: No mocks in production paths.

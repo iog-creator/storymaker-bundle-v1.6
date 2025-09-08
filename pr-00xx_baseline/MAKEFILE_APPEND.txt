@@ -1,0 +1,29 @@
+.PHONY: ci-perms
+ci-perms:
+	chmod +x ci/*.sh
+
+.PHONY: rules-sync
+rules-sync:
+	chmod +x scripts/sync_rules.sh
+	./scripts/sync_rules.sh
+
+.PHONY: guards
+guards: ci-perms rules-sync
+	./ci/env_config_guard.sh
+	./ci/no_mocks_env_guard.sh
+	./ci/provider_split_guard.sh
+	./ci/proofs_path_guard.sh
+	./ci/ssot_guard.sh
+	./ci/rules_presence_guard.sh
+
+.PHONY: verify
+verify: guards
+	@echo "All guards passed."
+
+.PHONY: smoke-provider-split
+smoke-provider-split: guards
+	./scripts/smoke_provider_split.sh
+
+.PHONY: proofs-lint
+proofs-lint: guards
+	./scripts/proofs_lint.sh

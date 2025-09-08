@@ -1,12 +1,15 @@
+# Environment & local overrides
+.env
+*.env
+!.env.example
+
+# Python / build
 __pycache__/
 *.pyc
-.venv/
-.env
-node_modules/
+.pytest_cache/
+.coverage
 dist/
-.DS_Store
-.cache/
-coverage*
-reports/
-site/
-.agentpm_workspace/
+build/
+
+# Node / web
+node_modules/

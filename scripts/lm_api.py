@@ -10,7 +10,6 @@ Usage:
 Env:
   OPENAI_API_BASE (default: http://127.0.0.1:1234/v1)
   OPENAI_API_KEY  (default: lm-studio)
-  MOCK_LMS=1      (simulate success without hitting network)
 
 Exit codes:
 """
@@ -53,16 +52,13 @@ def http_post_json(url, payload, headers=None, timeout=8):
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
-def cmd_models(base, mock):
+def cmd_models(base):
     reasons, checks, proofs = [], [], []
-    if mock:
-        models = {"data": [{"id": "mock-model", "object": "model"}]}
-    else:
-        try:
-            models = http_get_json(base.rstrip("/") + "/models", timeout=4)
-        except Exception as e:
-            emit_envelope("error", 1.0, ["models_fetch_failed"], data={"base": base}, error_message=str(e))
-            return
+    try:
+        models = http_get_json(base.rstrip("/") + "/models", timeout=4)
+    except Exception as e:
+        emit_envelope("error", 1.0, ["models_fetch_failed"], data={"base": base}, error_message=str(e))
+        return
     arr = models.get("data") or []
     count = len(arr)
     if count < 1:
@@ -73,41 +69,38 @@ def cmd_models(base, mock):
     proofs.append(f"first_model={first}")
     emit_envelope("success", 0.0, ["lm_models_ok"], data={"base": base, "count": count, "models": arr[:3]}, checks=checks, proofs=proofs)
 
-def cmd_chat(base, api_key, model, prompt, system_msg, max_tokens, temperature, mock):
+def cmd_chat(base, api_key, model, prompt, system_msg, max_tokens, temperature):
     reasons, checks, proofs = [], [], []
     content = ""
-    if mock:
-        content = "pong"
-    else:
-        # discover default model if not provided
-        if not model:
-            try:
-                models = http_get_json(base.rstrip("/") + "/models", timeout=4)
-                # Filter out embedding models for chat
-                chat_models = [m for m in (models.get("data") or []) if not ("embedding" in m.get("id", "").lower())]
-                model = (chat_models[0] if chat_models else {}).get("id", "")
-            except Exception as e:
-                emit_envelope("error", 1.0, ["models_fetch_failed"], data={"base": base}, error_message=str(e))
-                return
-        if not model:
-            emit_envelope("error", 1.0, ["no_model_for_chat"], data={"base": base})
-            return
-        payload = {
-            "model": model,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-            "messages": [
-                {"role": "system", "content": system_msg},
-                {"role": "user", "content": prompt}
-            ]
-        }
-        headers = {"Authorization": f"Bearer {api_key}"}
+    # discover default model if not provided
+    if not model:
         try:
-            resp = http_post_json(base.rstrip("/") + "/chat/completions", payload, headers=headers, timeout=8)
-            content = (((resp.get("choices") or [{}])[0]).get("message") or {}).get("content", "") or ""
+            models = http_get_json(base.rstrip("/") + "/models", timeout=4)
+            # Filter out embedding models for chat
+            chat_models = [m for m in (models.get("data") or []) if not ("embedding" in m.get("id", "").lower())]
+            model = (chat_models[0] if chat_models else {}).get("id", "")
         except Exception as e:
-            emit_envelope("error", 1.0, ["chat_request_failed"], data={"base": base, "model": model}, error_message=str(e))
+            emit_envelope("error", 1.0, ["models_fetch_failed"], data={"base": base}, error_message=str(e))
             return
+    if not model:
+        emit_envelope("error", 1.0, ["no_model_for_chat"], data={"base": base})
+        return
+    payload = {
+        "model": model,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "messages": [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": prompt}
+        ]
+    }
+    headers = {"Authorization": f"Bearer {api_key}"}
+    try:
+        resp = http_post_json(base.rstrip("/") + "/chat/completions", payload, headers=headers, timeout=8)
+        content = (((resp.get("choices") or [{}])[0]).get("message") or {}).get("content", "") or ""
+    except Exception as e:
+        emit_envelope("error", 1.0, ["chat_request_failed"], data={"base": base, "model": model}, error_message=str(e))
+        return
 
     if not content:
         emit_envelope("error", 1.0, ["chat_no_content"], data={"base": base, "model": model})
@@ -115,18 +108,16 @@ def cmd_chat(base, api_key, model, prompt, system_msg, max_tokens, temperature, 
     preview = (content[:32] + "...") if len(content) > 32 else content
     checks.append({"name": "chat_reply_nonempty", "pass": True})
     proofs.append(f"len={len(content)}")
-    emit_envelope("success", 0.0, ["chat_ok"], data={"base": base, "model": model, "preview": preview}, checks=checks, proofs=proofs)
+    emit_envelope("success", 0.0, ["chat_ok"], data={"base": base, "model": model, "preview": preview, "content": content}, checks=checks, proofs=proofs)
 
 def main():
     base = _env("OPENAI_API_BASE", "http://127.0.0.1:1234/v1")
     api_key = _env("OPENAI_API_KEY", "lm-studio")
-    mock = _env("MOCK_LMS", "0") == "1"
-
     p = argparse.ArgumentParser(description="LM Studio Envelope CLI (stdlib only)")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sp_models = sub.add_parser("models", help="List models (envelope)")
-    sp_models.set_defaults(func=lambda _: cmd_models(base, mock))
+    sp_models.set_defaults(func=lambda _: cmd_models(base))
 
     sp_chat = sub.add_parser("chat", help="Chat smoke (envelope)")
     sp_chat.add_argument("--prompt", required=True)
@@ -135,7 +126,7 @@ def main():
     sp_chat.add_argument("--max-tokens", type=int, default=16)
     sp_chat.add_argument("--temperature", type=float, default=0.0)
     sp_chat.set_defaults(func=lambda args: cmd_chat(
-        base, api_key, args.model, args.prompt, args.system_msg, args.max_tokens, args.temperature, mock
+        base, api_key, args.model, args.prompt, args.system_msg, args.max_tokens, args.temperature
     ))
 
     args = p.parse_args()

@@ -2,7 +2,7 @@
 # verify_live.sh — REAL end-to-end go-live gate (no mocks).
 # Orchestrates: no-bypass -> LM Studio (models/chat) -> DB wait/health
 # -> SSOT ingest -> embeddings upsert -> graph extract -> KNN -> graph paths
-# Emits ONE Envelope v1.1 rollup. Fails if any MOCK_* env var is set to 1.
+# Emits ONE Envelope v1.1 rollup.
 
 # Self-healing bootstrap: re-invoke through run.sh if not already loaded
 if [[ -z "${RUN_SH:-}" ]]; then
@@ -40,13 +40,6 @@ emit(){
 }'
 }
 
-# Forbid mocks
-for v in $(env | awk -F= '/^MOCK_/ {print $1}'); do
-  if [[ "${!v}" == "1" ]]; then
-    emit "error" "1.0" '{}' "$(jq -n --arg v "$v" '["mock_flag_forbidden:"+$v]')" '[]' '[]'
-    exit 0
-  fi
-done
 
 # Tools
 for t in jq curl psql python3; do

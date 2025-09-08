@@ -12,7 +12,10 @@ setup:
 	@echo 'Setup complete'
 
 # === User-Friendly Bootstrap ===
-.PHONY: start stop status help
+.PHONY: bootstrap start stop status help
+bootstrap:
+	@bash scripts/auto_bootstrap.sh
+
 start:
 	@bash scripts/bootstrap.sh start
 
@@ -24,6 +27,9 @@ status:
 
 help:
 	@echo "StoryMaker - AI-Powered Creative Writing Platform"
+	@echo ""
+	@echo "First Time Setup:"
+	@echo "  make bootstrap - Complete self-bootstrap (zero manual intervention)"
 	@echo ""
 	@echo "Quick Start:"
 	@echo "  make start     - Start StoryMaker (one command)"
@@ -39,7 +45,7 @@ help:
 	@echo "  make verify-all - Run full verification suite"
 	@echo "  make logs      - View service logs"
 	@echo ""
-	@echo "For new users, just run: make start"
+	@echo "For new users, just run: make bootstrap"
 
 # === Auto-configure Real Services ===
 setup-real:
@@ -93,9 +99,6 @@ lms-ping:
 lms-chat:
 	@$(RUN_WRAP) python3 scripts/lm_api.py chat --prompt "ping" | jq
 
-verify-lms:
-	@$(RUN_WRAP) python3 scripts/lm_api.py models | jq -e '.status=="success"' >/dev/null && \
-	echo "OK: LM Studio integration working" || (echo "FAIL: LM Studio integration"; exit 1)
 
 preflight:
 	@$(RUN_WRAP) bash scripts/preflight_gate.sh | jq
@@ -111,7 +114,49 @@ verify-live:
 	@$(RUN_WRAP) bash scripts/verify_live_simple.sh | jq -e '.status=="success"' >/dev/null && \
 	echo "OK: verify-live" || (echo "FAIL: verify-live"; exit 1)
 
-verify-all:
+# --- AgentPM rules & proofs hardening ---
+.PHONY: rules-sync proofs-guard rules-guard verify-narrative verify-lms verify-all ci-perms guards verify
+
+ci-perms:
+	chmod +x ci/*.sh
+
+rules-sync:
+	chmod +x scripts/sync_rules.sh
+	./scripts/sync_rules.sh
+
+proofs-guard:
+	@bash ci/proofs_path_guard.sh
+
+rules-guard:
+	@bash ci/rules_presence_guard.sh
+
+guards: ci-perms rules-sync
+	./ci/env_config_guard.sh
+	./ci/no_mocks_env_guard.sh
+	./ci/provider_split_guard.sh
+	./ci/proofs_path_guard.sh
+	./ci/ssot_guard.sh
+	./ci/rules_presence_guard.sh
+
+verify: guards
+	@echo "All guards passed."
+
+.PHONY: smoke-provider-split
+smoke-provider-split: guards
+	./scripts/smoke_provider_split.sh
+
+.PHONY: proofs-lint
+proofs-lint: guards
+	./scripts/proofs_lint.sh
+
+verify-narrative:
+	@bash scripts/verify_narrative.sh
+
+verify-lms:
+	@bash scripts/verify_lms.sh
+
+# Ensure both proofs exist and rules are synced before live verify
+verify-all: rules-sync rules-guard proofs-guard verify-lms verify-narrative
 	@echo "=== STORYMAKER VERIFICATION ==="
 	@echo "1. Config check..."
 	@$(MAKE) config-check
@@ -121,6 +166,8 @@ verify-all:
 	@$(MAKE) verify-preflight
 	@echo "4. Live verification..."
 	@$(MAKE) verify-live
+	@echo "5. Narrative proof..."
+	@$(MAKE) verify-narrative
 	@echo "✅ ALL VERIFICATIONS PASSED"
 
 # === Envelope System ===

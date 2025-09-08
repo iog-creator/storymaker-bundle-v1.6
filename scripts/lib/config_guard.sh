@@ -9,9 +9,8 @@ for v in "${req_vars[@]}"; do
 done
 
 # Local-first hard rule (with mock support)
-if [[ "${OPENAI_API_BASE:-}" != "http://127.0.0.1:1234/v1" ]] && [[ "${MOCK_LMS:-}" != "1" ]]; then
+if [[ "${OPENAI_API_BASE:-}" != "http://127.0.0.1:1234/v1" ]]; then
   echo "[config_guard] ERROR: OPENAI_API_BASE must be http://127.0.0.1:1234/v1 (local-first)." >&2
-  echo "[config_guard] INFO: Set MOCK_LMS=1 to bypass LM Studio requirement for development." >&2
   exit 1
 fi
 

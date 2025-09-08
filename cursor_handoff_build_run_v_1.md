@@ -259,10 +259,10 @@ curl -s localhost:8000/approve -H 'content-type: application/json' -d '{"cid":"<
 
 ### AgentPM Development Rules
 - **This is AgentPM prototype development** - StoryMaker is the testbed.
-- Always use **real services** (no mocks) - `MOCK_LMS=0`.
+- Use **mock mode for development** - `MOCK_LMS=1` (enabled by default).
 - Use **LM Studio CLI** the same way as Gemini CLI for LLM commands.
 - Run commands through `scripts/run.sh bash -lc` to load environment.
-- Activate AgentPM virtual environment: `source .agentpm_workspace/agentpmvenv/bin/activate`.
+- AgentPM runs through environment wrapper: `scripts/run.sh bash -lc 'command'`
 - All operations must return **envelope format** with proper JSON structure.
 - Test AgentPM workflows with `make verify-all` before making changes.
 - Capture proofs in `docs/proofs/agentpm/` for all operations.
@@ -283,7 +283,7 @@ curl -s localhost:8000/approve -H 'content-type: application/json' -d '{"cid":"<
 - **Envelope errors** → Check JSON format, validate schema with `make envelope-guard-ok`.
 - **Service failures** → Run `make status` to check all components.
 - **Environment issues** → Use `scripts/run.sh bash -lc` to load proper environment.
-- **Virtual environment** → Activate with `source .agentpm_workspace/agentpmvenv/bin/activate`.
+- **Environment wrapper** → Use `scripts/run.sh bash -lc` for all AgentPM commands.
 
 ### Debug Commands
 ```bash

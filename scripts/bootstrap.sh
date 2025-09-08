@@ -11,6 +11,19 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Load environment variables from .env file
+if [[ -f .env ]]; then
+    set -a
+    source .env
+    set +a
+fi
+
+# Load no-mocks guard after environment is loaded
+if [[ -f scripts/lib/no_mocks_guard.sh ]]; then
+  # shellcheck disable=SC1091
+  source scripts/lib/no_mocks_guard.sh
+fi
+
 # Helper functions
 log_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
 log_success() { echo -e "${GREEN}✅ $1${NC}"; }
@@ -51,19 +64,22 @@ bootstrap() {
     
     log_success "Prerequisites check passed"
     
-    # Step 2: Check LM Studio
+    # Step 2: Check LM Studio or mock mode
+    log_info "Checking AI integration..."
+
+    # Check LM Studio availability
     log_info "Checking LM Studio connection..."
-    
+
     if ! curl -s http://127.0.0.1:1234/v1/models >/dev/null 2>&1; then
         log_error "LM Studio is not running or not accessible on port 1234"
         log_info "Please:"
         log_info "1. Open LM Studio"
         log_info "2. Load a chat model (e.g., qwen/qwen3-4b-2507)"
         log_info "3. Start the server"
-        log_info "4. Run this script again"
+        log_info "5. Run this script again"
         exit 1
     fi
-    
+
     # Check if models are loaded
     model_count=$(curl -s http://127.0.0.1:1234/v1/models | jq '.data | length' 2>/dev/null || echo "0")
     if [ "$model_count" -eq 0 ]; then
@@ -71,7 +87,7 @@ bootstrap() {
         log_info "Please load at least one chat model in LM Studio"
         exit 1
     fi
-    
+
     log_success "LM Studio is running with $model_count models"
     
     # Step 3: Setup database
@@ -151,7 +167,7 @@ bootstrap() {
     
     # Step 7: Final verification
     log_info "Running final verification..."
-    
+
     if curl -s http://127.0.0.1:1234/v1/models | jq -e '.data | length > 0' >/dev/null 2>&1; then
         log_success "LM Studio integration verified"
     else

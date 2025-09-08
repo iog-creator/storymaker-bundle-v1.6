@@ -1,0 +1,8 @@
+---
+name: ssot_presence_gate
+steps:
+  - verify required SSOT files exist (MASTER_PLAN.md, ASBUILT.md, MANUAL.md, VALIDATION_PROTOCOL.md)
+policy: fail-closed
+owner: PM
+---
+Contract: SSOT must be present and complete before any runbooks execute.

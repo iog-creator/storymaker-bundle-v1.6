@@ -8,3 +8,7 @@ mypy
 proselint
 jsonschema==4.23.0
 psycopg[binary]>=3.2.1
+requests
+# huggingface_hub  # Not used - using Groq instead
+# NOTE: remove OpenAI/other providers from requirements if present;
+# Narrative is HF-only per AGENTS.md/SRS A8.

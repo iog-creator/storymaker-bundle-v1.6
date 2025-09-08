@@ -1,0 +1,8 @@
+---
+name: proofs_location_gate
+steps:
+  - ensure all proofs under docs/proofs/agentpm/
+policy: fail-closed
+owner: Verifier
+---
+Contract: Evidence lives only in the canonical path.
