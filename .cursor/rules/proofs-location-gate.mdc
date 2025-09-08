@@ -1,0 +1,8 @@
+---
+description: Contract: Evidence lives only in the canonical path.
+globs: ['docs/proofs/**', '**/proofs/**']
+alwaysApply: false
+---
+Contract: Evidence lives only in the canonical path.
+
+Emit all envelopes under docs/proofs/agentpm/. Move strays there.

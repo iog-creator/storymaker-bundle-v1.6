@@ -1,0 +1,8 @@
+---
+description: Contract: SSOT must be present and complete before any runbooks execute.
+globs: []
+alwaysApply: true
+---
+Contract: SSOT must be present and complete before any runbooks execute.
+
+Defer to docs/SSOT/*. Avoid changes that drift from MASTER_PLAN, ASBUILT, MANUAL, VALIDATION_PROTOCOL.

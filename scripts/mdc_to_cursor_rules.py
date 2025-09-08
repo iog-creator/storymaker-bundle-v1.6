@@ -16,32 +16,23 @@ def read_frontmatter(md_text: str):
 def cursor_rule(meta, body):
     name = meta.get("name", "unnamed")
     desc = body.splitlines()[0].strip() if body else f"{name} (auto-applied rule)"
-    # Defaults
-    rule = {
-        "name": name.replace("_","-"),
-        "description": desc,
-        # Cursor keys that control auto-attach behavior:
-        # - alwaysApply: applies in all chats/edits
-        # - globs: attaches when matching files are involved
-        "alwaysApply": False,
-        "globs": [],
-        # Optional: 'run' could point at shell scripts if you want Cursor to suggest commands
-        # For now we keep rules guidance-only (lightweight, no exec).
-    }
-
-    # Heuristics per your five rules
+    
+    # Determine alwaysApply and globs based on rule type
+    alwaysApply = False
+    globs = []
+    
     if name == "ssot_presence_gate":
-        rule["alwaysApply"] = True
+        alwaysApply = True
     elif name == "provider_split_gate":
-        rule["alwaysApply"] = True
+        alwaysApply = True
     elif name == "no_mocks_gate":
-        rule["globs"] = [".env", ".env.*", "Makefile", "scripts/**"]
+        globs = [".env", ".env.*", "Makefile", "scripts/**"]
     elif name == "env_config_guard":
-        rule["globs"] = [".env", ".env.*"]
+        globs = [".env", ".env.*"]
     elif name == "proofs_location_gate":
-        rule["globs"] = ["docs/proofs/**", "**/proofs/**"]
-
-    # Optional: attach a little "how to" guidance Cursor can show
+        globs = ["docs/proofs/**", "**/proofs/**"]
+    
+    # Build guidance notes
     guidance = []
     if name == "provider_split_gate":
         guidance.append("Creative uses Groq (llama-3.3-70b-versatile). Embeddings/rerank use LM Studio at http://127.0.0.1:1234/v1.")
@@ -53,15 +44,22 @@ def cursor_rule(meta, body):
         guidance.append("Emit all envelopes under docs/proofs/agentpm/. Move strays there.")
     if name == "ssot_presence_gate":
         guidance.append("Defer to docs/SSOT/*. Avoid changes that drift from MASTER_PLAN, ASBUILT, MANUAL, VALIDATION_PROTOCOL.")
+    
+    # Create the rule content as .mdc format
+    rule_content = f"""---
+description: {desc}
+globs: {globs}
+alwaysApply: {str(alwaysApply).lower()}
+---
+{desc}
 
-    if guidance:
-        rule["notes"] = guidance
+{chr(10).join(guidance) if guidance else ''}"""
+    
+    return rule_content
 
-    return rule
-
-def emit_yaml(rule, path):
+def emit_mdc(rule_content, path):
     with open(path, "w", encoding="utf-8") as f:
-        yaml.safe_dump(rule, f, sort_keys=False)
+        f.write(rule_content)
 
 def main():
     # Allow explicit list or default to all *.mdc
@@ -69,9 +67,10 @@ def main():
     for in_path in inputs:
         md = pathlib.Path(in_path).read_text(encoding="utf-8")
         meta, body = read_frontmatter(md)
-        rule = cursor_rule(meta, body)
-        out = DST_DIR / (rule["name"] + ".yaml")
-        emit_yaml(rule, out)
+        rule_content = cursor_rule(meta, body)
+        rule_name = meta.get("name", "unnamed").replace("_", "-")
+        out = DST_DIR / (rule_name + ".mdc")
+        emit_mdc(rule_content, out)
         print(f"[rules] emitted {out}")
 
 if __name__ == "__main__":

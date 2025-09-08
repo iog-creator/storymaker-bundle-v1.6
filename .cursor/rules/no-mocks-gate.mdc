@@ -1,0 +1,8 @@
+---
+description: Contract: No mocks in production paths.
+globs: ['.env', '.env.*', 'Makefile', 'scripts/**']
+alwaysApply: false
+---
+Contract: No mocks in production paths.
+
+Production paths: DISABLE_MOCKS=1 and MOCK_LMS=0.
