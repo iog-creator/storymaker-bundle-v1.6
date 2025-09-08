@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/components/HealthRow.tsx","./src/components/NarrativePanel.tsx","./src/components/ProofsMeter.tsx","./src/components/RetrievalPanel.tsx","./src/components/Tile.tsx","./src/lib/api.ts"],"version":"5.9.2"}

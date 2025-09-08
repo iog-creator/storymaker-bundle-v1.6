@@ -1,0 +1,30 @@
+name: WebUI
+on:
+  push:
+    paths:
+      - "apps/webui/**"
+      - ".github/workflows/webui.yml"
+  pull_request:
+    paths:
+      - "apps/webui/**"
+      - ".github/workflows/webui.yml"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "apps/webui/package.json"
+      - name: Install
+        working-directory: apps/webui
+        run: npm ci
+      - name: Typecheck
+        working-directory: apps/webui
+        run: npm run typecheck
+      - name: Build
+        working-directory: apps/webui
+        run: npm run build

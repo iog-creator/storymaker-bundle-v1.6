@@ -1,4 +1,5 @@
-import React from 'react'
-import { createRoot } from 'react-dom/client'
-const root=document.createElement('div');root.id='root';document.body.appendChild(root)
-createRoot(root).render(React.createElement('div',null,'StoryMaker Canvas Demo — v1.6'))
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+
+createRoot(document.getElementById("root")!).render(<React.StrictMode><App /></React.StrictMode>);

@@ -47,6 +47,14 @@ help:
 	@echo ""
 	@echo "For new users, just run: make bootstrap"
 
+# === Web UI ===
+.PHONY: webui.dev webui.build
+webui.dev:
+	cd apps/webui && npm install && npm run dev
+
+webui.build:
+	cd apps/webui && npm install && npm run typecheck && npm run build
+
 # === Auto-configure Real Services ===
 setup-real:
 	@echo "🔧 Auto-configuring real services (disabling mock mode)..."
