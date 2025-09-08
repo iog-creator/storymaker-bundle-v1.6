@@ -11,6 +11,12 @@ setup:
 	corepack prepare pnpm@9.0.0 --activate || true
 	@echo 'Setup complete'
 
+# === Auto-configure Real Services ===
+setup-real:
+	@echo "🔧 Auto-configuring real services (disabling mock mode)..."
+	@bash scripts/auto_setup_real_services.sh
+	@echo "✅ Real services configured automatically"
+
 # === Infrastructure ===
 db.up:
 	docker compose up -d db redis minio
@@ -19,6 +25,7 @@ db.migrate:
 	uv venv --clear && uv pip install psycopg[binary] && POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} uv run python scripts/db_migrate.py sql/001_init.sql
 
 api.up:
+	$(MAKE) setup-real
 	$(MAKE) db.migrate
 	uv venv --clear && uv pip install -r requirements-dev.txt
 	POSTGRES_DSN=$${POSTGRES_DSN:-postgresql://story:story@localhost:5432/storymaker} REDIS_URL=$${REDIS_URL:-redis://localhost:6380} uv run uvicorn services.worldcore.main:app --port 8000 --reload &
