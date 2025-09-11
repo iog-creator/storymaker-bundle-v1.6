@@ -26,6 +26,27 @@ async def healthz():
     from datetime import datetime, timezone
     return {"status": "ok", "meta": {"ts": datetime.now(timezone.utc).isoformat()}}
 
+@app.get("/version")
+async def version():
+    # Quick provenance check
+    import subprocess
+    try:
+        git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()[:8]
+    except:
+        git_sha = "unknown"
+    
+    spec_fingerprint = getattr(graph, '__spec_fingerprint__', 'unknown') if 'graph' in globals() else 'unknown'
+    
+    return {
+        "status": "ok",
+        "data": {
+            "git_sha": git_sha,
+            "spec_fingerprint": spec_fingerprint,
+            "service": "orchestration-host"
+        },
+        "meta": {"ts": datetime.now(timezone.utc).isoformat()}
+    }
+
 @app.post("/run")
 async def run(inputs: dict):
     try:
