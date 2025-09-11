@@ -1,0 +1,58 @@
+version: 1
+name: outline_flow
+description: Outline → QA → Approve draft lane
+inputs:
+  premise: {type: string, required: true}
+nodes:
+  - id: narrative_outline
+    kind: http_call
+    config:
+      method: POST
+      url: ${env:NARRATIVE_BASE}/narrative/outline
+      headers: {"Content-Type": "application/json"}
+      body:
+        world_id: default
+        premise: ${inputs.premise}
+        mode: hero_journey
+  - id: qa_trope_budget
+    kind: http_call
+    config:
+      method: POST
+      url: ${env:WORLDCORE_BASE}/api/qa/trope-budget
+      headers: {"Content-Type": "application/json"}
+      body:
+        draft: ${nodes.narrative_outline.data.beats}
+  - id: qa_promise_payoff
+    kind: http_call
+    config:
+      method: POST
+      url: ${env:WORLDCORE_BASE}/api/qa/promise-payoff
+      headers: {"Content-Type": "application/json"}
+      body:
+        draft: ${nodes.narrative_outline.data.beats}
+  - id: decide_gate
+    kind: branch
+    config:
+      expr: ${nodes.qa_trope_budget.data.used < env:TROPE_MAX}
+      on_true: [approve_canon]
+      on_false: []
+  - id: approve_canon
+    kind: http_call
+    config:
+      method: POST
+      url: ${env:WORLDCORE_BASE}/api/events/Draft001/approve
+      headers: {"Content-Type": "application/json"}
+      body: { action: "approve_canon" }
+edges:
+  - {from: narrative_outline, to: qa_trope_budget}
+  - {from: narrative_outline, to: qa_promise_payoff}
+  - {from: qa_trope_budget,   to: decide_gate}
+  - {from: qa_promise_payoff, to: decide_gate}
+outputs:
+  outline: ${nodes.narrative_outline.data}
+  qa:
+    trope: ${nodes.qa_trope_budget.data}
+    promise: ${nodes.qa_promise_payoff.data}
+  approved: ${nodes.decide_gate.data.cond}
+
+

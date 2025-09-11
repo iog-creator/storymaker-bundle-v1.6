@@ -1,0 +1,29 @@
+generated: services/orchestration/generated/outline_graph.py
+{
+  "outline": {
+    "title": "Outline from premise: A heist in a city of mirrors",
+    "beats": [
+      "Hook",
+      "Inciting Incident",
+      "Midpoint Twist",
+      "Climax",
+      "Resolution"
+    ],
+    "proposal_id": "DZ4ITUO"
+  },
+  "qa": {
+    "trope": {
+      "used": 7,
+      "flags": {
+        "ok": true
+      }
+    },
+    "promise": {
+      "score": 0.91,
+      "flags": {
+        "ok": true
+      }
+    }
+  },
+  "approved": false
+}

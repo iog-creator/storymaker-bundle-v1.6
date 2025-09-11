@@ -44,6 +44,8 @@ help:
 	@echo "Advanced:"
 	@echo "  make verify-all - Run full verification suite"
 	@echo "  make logs      - View service logs"
+	@echo "  make graph-generate - Generate orchestration graph from Promptflow YAML"
+	@echo "  make graph-verify   - Verify generated graph fingerprint"
 	@echo ""
 	@echo "For new users, just run: make bootstrap"
 
@@ -145,6 +147,8 @@ guards: ci-perms
 	./ci/proofs_path_guard.sh
 	./ci/ssot_guard.sh
 	./ci/rules_presence_guard.sh
+	./ci/envelope_provider_guard.sh
+	./ci/qa_provider_guard.sh
 
 .PHONY: rules-emit
 rules-emit:
@@ -181,6 +185,59 @@ verify-all: rules-sync rules-guard proofs-guard verify-lms verify-narrative
 	@echo "5. Narrative proof..."
 	@$(MAKE) verify-narrative
 	@echo "✅ ALL VERIFICATIONS PASSED"
+
+# === Orchestration (Promptflow → LangGraph) ===
+.PHONY: graph-generate graph-verify
+
+PF_YAML=examples/flows/outline.flow.dag.yaml
+LG_OUT=services/orchestration/generated/outline_graph.py
+
+graph-generate:
+	@python3 -m tools.pf_langgraph.gen --in $(PF_YAML) --out $(LG_OUT)
+
+graph-verify:
+	@python3 -m tools.pf_langgraph.verify --yaml examples/flows/outline.flow.dag.yaml --py services/orchestration/generated/outline_graph.py
+
+.PHONY: graph-serve
+graph-serve: graph-generate
+	@echo "Serving generated graph at http://127.0.0.1:8700 (CTRL+C to stop)"
+	@python3 - <<'PY'
+	import uvicorn, os
+	os.environ.setdefault("PYTHONPATH",".")
+	uvicorn.run("services.orchestration.host:app", host="127.0.0.1", port=8700, reload=True)
+	PY
+
+.PHONY: graph-dev
+# Launch LangGraph Studio (visual live graph); requires: pip install -U "langgraph-cli[inmem]"
+graph-dev: graph-generate
+	@echo "Opening LangGraph Studio at http://127.0.0.1:8123"
+	@langgraph dev
+
+.PHONY: graph-diagram
+# Render Mermaid diagram from the Promptflow YAML
+graph-diagram:
+	@python3 tools/pf_langgraph/diagram.py examples/flows/outline.flow.dag.yaml docs/diagrams/outline.mmd.md
+	@echo "Mermaid: docs/diagrams/outline.mmd.md"
+
+.PHONY: mock-serve
+mock-serve:
+	@echo "Mock services at http://127.0.0.1:8900"
+	@PYTHONPATH=. python3 scripts/mock_story_services.py
+
+.PHONY: graph-e2e-ok
+# End-to-end happy path against mock services (approved=True)
+graph-e2e-ok: graph-generate
+	@PYTHONPATH=. python3 scripts/test_graph_e2e.py
+
+.PHONY: graph-e2e-fail
+# End-to-end failure path (force gate to false via env), should not hit approve node
+graph-e2e-fail: graph-generate
+	@PYTHONPATH=. python3 scripts/test_graph_e2e.py fail
+
+.PHONY: graph-test-parallel
+# Test parallel execution and race conditions
+graph-test-parallel: graph-generate
+	@PYTHONPATH=. python3 tests/test_graph_parallel.py
 
 # === Envelope System ===
 .PHONY: envelope-guard-ok envelope-guard-bad

@@ -1,0 +1,5 @@
+generated: services/orchestration/generated/outline_graph.py
+✅ Graph execution test passed
+   - Final Outputs: {'outline': {'title': 'Outline from premise: parallel test', 'beats': ['Hook', 'Inciting Incident', 'Midpoint Twist', 'Climax', 'Resolution'], 'proposal_id': 'D56D2HT'}, 'qa': {'trope': {'used': 7, 'flags': {'ok': True}}, 'promise': {'score': 0.91, 'flags': {'ok': True}}}, 'approved': True}
+🎉 Basic parallel tests passed!
+Note: True parallel execution requires a different LangGraph implementation
