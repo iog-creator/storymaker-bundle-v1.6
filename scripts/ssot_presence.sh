@@ -3,7 +3,7 @@
 # Configurable count expectation for different project types
 
 SSOT_DIR="${SSOT_DIR:-docs/SSOT}"
-EXPECTED_COUNT="${SSOT_EXPECTED_COUNT:-16}"
+EXPECTED_COUNT="${SSOT_EXPECTED_COUNT:-17}"
 
 # Count SSOT files
 count=$(find "$SSOT_DIR" -name "*.md" 2>/dev/null | wc -l)

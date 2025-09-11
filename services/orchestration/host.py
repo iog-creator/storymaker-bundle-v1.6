@@ -20,6 +20,12 @@ def _startup():
     global graph
     graph = build_graph_with_ctx(env=dict(os.environ)).compile()
 
+@app.get("/healthz")
+async def healthz():
+    # Lightweight readiness for CI and Web UI
+    from datetime import datetime, timezone
+    return {"status": "ok", "meta": {"ts": datetime.now(timezone.utc).isoformat()}}
+
 @app.post("/run")
 async def run(inputs: dict):
     try:

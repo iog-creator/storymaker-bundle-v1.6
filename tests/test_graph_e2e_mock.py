@@ -36,10 +36,18 @@ def test_e2e_ok():
         m = _load_generated()
         async def run():
             st = await m.run_graph({"premise":"ok path"})
-            return st["outputs"]
-        out = asyncio.run(run())
-        assert out["approved"] is True
-        assert isinstance(out["qa"]["trope"]["used"], int)
+            return st
+        st = asyncio.run(run())
+        # Envelope-ish structure (state+outputs) and key nodes present
+        assert isinstance(st, dict)
+        assert "nodes" in st and "outputs" in st
+        ns = st["nodes"]
+        assert "narrative_outline" in ns and "qa_trope_budget" in ns and "qa_promise_payoff" in ns
+        # Branch cond recorded
+        assert "decide_gate" in ns and "data" in ns["decide_gate"]
+        assert ns["decide_gate"]["data"]["cond"] is True
+        assert st["outputs"]["approved"] is True
+        assert isinstance(st["outputs"]["qa"]["trope"]["used"], int)
     finally:
         p.terminate()
 
@@ -52,9 +60,12 @@ def test_e2e_blocked():
         m = _load_generated()
         async def run():
             st = await m.run_graph({"premise":"blocked path"})
-            return st["outputs"]
-        out = asyncio.run(run())
-        assert out["approved"] is False
+            return st
+        st = asyncio.run(run())
+        ns = st["nodes"]
+        assert "qa_trope_budget" in ns and "qa_promise_payoff" in ns
+        assert "decide_gate" in ns and ns["decide_gate"]["data"]["cond"] is False
+        assert "outputs" in st and st["outputs"].get("approved") is False
     finally:
         p.terminate()
 

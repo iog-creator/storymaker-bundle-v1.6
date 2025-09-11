@@ -250,3 +250,7 @@ envelope-guard-ok:
 envelope-guard-bad:
 	@echo 'not json' | bash tools/single_envelope_guard.sh | jq -e '.status=="error"' >/dev/null && \
 	echo "OK: guard rejected invalid input" || (echo "FAIL: guard bad"; exit 1)
+
+.PHONY: webui-test
+webui-test:
+	@cd apps/webui && npx playwright install --with-deps && npx playwright test
