@@ -1,0 +1,7 @@
+{
+  "graphs": {
+    "outline": "./services/orchestration/generated/outline_graph.py:build_graph"
+  },
+  "env": ".env"
+}
+

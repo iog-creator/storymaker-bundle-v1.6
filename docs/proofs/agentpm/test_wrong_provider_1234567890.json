@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "data": {
+    "draft": "Test with wrong provider"
+  },
+  "meta": {
+    "provider": "wrong-provider",
+    "model": "test-model"
+  }
+}

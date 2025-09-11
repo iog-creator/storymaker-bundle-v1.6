@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "data": {
+    "draft": "Test narrative outline",
+    "task": "outline",
+    "world_id": "test"
+  },
+  "meta": {
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "latency_ms": 1500
+  }
+}

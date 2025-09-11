@@ -1,0 +1,15 @@
+{
+  "name": "proof_20250911_015616",
+  "dir": "docs/proofs/proof_20250911_015616",
+  "git_head": "d5d409532011d05f6585e6878095e5a786397e9c",
+  "artifacts": [
+    {
+      "file": "envelope.json",
+      "sha256": "77945285d70f86a3c1d6ee5b193c211f2f15bf8e8ba30e85d8763ba8c534aedc"
+    },
+    {
+      "file": "side_effects.txt",
+      "sha256": "9ad3ad06cc2df616f69e3e1ff260b41d5c5089d3854c05dc4710fc52396a29bd"
+    }
+  ]
+}

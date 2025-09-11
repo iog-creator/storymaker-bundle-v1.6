@@ -1,0 +1,8 @@
+---
+name: role_separation_gate
+steps:
+  - Enforce PM/Builder/Verifier boundaries
+policy: fail-closed
+owner: PM
+---
+Contract: Role separation must be maintained.

@@ -1,10 +1,11 @@
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
 from services.common.envelope import envelope_ok, envelope_error
 from services.narrative.ledger import compute_promise_payoff, trope_budget_ok
-from services.narrative.scribe.hf_client import generate as hf_generate
+from services.narrative.api import router as narrative_router
 import os
 import json
 import logging
@@ -15,7 +16,38 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="StoryMaker Narrative", version="1.6.0")
+def create_app() -> FastAPI:
+    app = FastAPI(title="StoryMaker Narrative", version="1.6.0")
+    
+    # Add CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok", "data": {"ok": True}}
+
+    @app.get("/health/ready")
+    def ready():
+        from services.narrative.providers.groq_client import GroqError, get_config
+        meta = {"checks": {}}
+        try:
+            cfg = get_config()
+            meta["checks"]["groq_env"] = {"ok": True, "model": cfg.model}
+            return {"status": "ok", "data": {"ready": True}, "meta": meta}
+        except GroqError as e:
+            meta["checks"]["groq_env"] = {"ok": False, "error": str(e)}
+            return {"status": "error", "error": "groq_misconfig", "meta": meta}
+
+    app.include_router(narrative_router)
+    return app
+
+app = create_app()
 
 # LM Studio integration
 def lm_studio_chat(prompt: str, system_msg: str = "", model: str = "", max_tokens: int = 500, temperature: float = 0.7) -> str:
@@ -56,61 +88,76 @@ def lm_studio_chat(prompt: str, system_msg: str = "", model: str = "", max_token
         return ""
 
 def generate_story_beat_description(beat_id: str, beat_note: str, premise: str, context: str = "") -> str:
-    """Generate detailed description for a story beat using AI"""
-    system_msg = """You are a master storyteller and narrative designer. Generate a compelling, detailed description for this story beat that fits the given premise. Focus on character development, conflict, and narrative progression. Keep it concise but vivid."""
-    prompt = f"""Story Premise: {premise}
-
-Beat: {beat_id} - {beat_note}
-{context}
-
-Generate a detailed description for this beat:"""
-
-    return lm_studio_chat(prompt, system_msg, max_tokens=200, temperature=0.8)
+    """Generate detailed description for a story beat using Groq"""
+    try:
+        # Import Groq client lazily
+        from services.narrative.scribe.hf_client import generate as hf_generate
+        result = hf_generate("outline", {
+            "premise": premise,
+            "beat_id": beat_id,
+            "beat_note": beat_note,
+            "context": context
+        })
+        return result.get("draft", f"Beat: {beat_note}")
+    except Exception as e:
+        logger.error(f"Groq generation failed: {e}")
+        return f"Beat: {beat_note}"
 
 def generate_plot_idea(premise: str, genre: str = "fantasy", constraints: List[str] = None) -> str:
-    """Generate a plot idea based on premise and constraints"""
-    system_msg = """You are a creative writer specializing in plot development. Generate an engaging plot idea that builds on the given premise while respecting any constraints."""
-    constraint_text = f"\nConstraints: {', '.join(constraints)}" if constraints else ""
-    prompt = f"""Genre: {genre}
-Premise: {premise}{constraint_text}
-
-Generate a compelling plot idea:"""
-
-    return lm_studio_chat(prompt, system_msg, max_tokens=300, temperature=0.9)
+    """Generate a plot idea based on premise and constraints using Groq"""
+    try:
+        from services.narrative.scribe.hf_client import generate as hf_generate
+        constraint_text = f"\nConstraints: {', '.join(constraints)}" if constraints else ""
+        result = hf_generate("outline", {
+            "premise": premise,
+            "genre": genre,
+            "constraints": constraint_text
+        })
+        return result.get("draft", f"Plot idea for {premise}")
+    except Exception as e:
+        logger.error(f"Groq generation failed: {e}")
+        return f"Plot idea for {premise}"
 
 def generate_character_profile(name: str, role: str, world_context: str) -> Dict[str, Any]:
-    """Generate character profile using AI"""
-    system_msg = """You are a character development expert. Create a detailed character profile with personality traits, backstory, motivations, and appearance."""
-    prompt = f"""Character Name: {name}
-Role: {role}
-World Context: {world_context}
-
-Generate a character profile including:
-- Personality traits
-- Physical appearance
-- Backstory
-- Core motivations
-- Key relationships"""
-
-    content = lm_studio_chat(prompt, system_msg, max_tokens=250, temperature=0.7)
-    return {
-        "name": name,
-        "role": role,
-        "description": content,
-        "traits": ["determined", "mysterious", "brave"],  # Could parse from AI response
-        "relationships": []
-    }
+    """Generate character profile using Groq"""
+    try:
+        from services.narrative.scribe.hf_client import generate as hf_generate
+        result = hf_generate("character_bible", {
+            "name": name,
+            "role": role,
+            "world_context": world_context
+        })
+        content = result.get("draft", f"Character profile for {name}")
+        return {
+            "name": name,
+            "role": role,
+            "description": content,
+            "traits": ["determined", "mysterious", "brave"],  # Could parse from AI response
+            "relationships": []
+        }
+    except Exception as e:
+        logger.error(f"Groq generation failed: {e}")
+        return {
+            "name": name,
+            "role": role,
+            "description": f"Character profile for {name}",
+            "traits": ["determined", "mysterious", "brave"],
+            "relationships": []
+        }
 
 def generate_dialogue(scene_context: str, characters: List[str], tone: str = "natural") -> str:
-    """Generate dialogue for a scene"""
-    system_msg = """You are a dialogue writer. Create natural, character-appropriate dialogue that advances the scene and reveals character."""
-    prompt = f"""Scene Context: {scene_context}
-Characters: {', '.join(characters)}
-Tone: {tone}
-
-Generate dialogue for this scene:"""
-
-    return lm_studio_chat(prompt, system_msg, max_tokens=150, temperature=0.6)
+    """Generate dialogue for a scene using Groq"""
+    try:
+        from services.narrative.scribe.hf_client import generate as hf_generate
+        result = hf_generate("scene", {
+            "scene_context": scene_context,
+            "characters": ', '.join(characters),
+            "tone": tone
+        })
+        return result.get("draft", f"Dialogue for {', '.join(characters)}")
+    except Exception as e:
+        logger.error(f"Groq generation failed: {e}")
+        return f"Dialogue for {', '.join(characters)}"
 
 # Story structure templates
 STORY_STRUCTURES = {
@@ -187,7 +234,7 @@ def health():
     """Health check endpoint"""
     return envelope_ok({"ok": True}, {"actor": "api"})
 
-@app.post("/narrative/outline")
+@app.post("/narrative/outline/v1")
 def outline(req: OutlineReq):
     """Generate narrative outline with story structure and AI-enhanced descriptions"""
     try:

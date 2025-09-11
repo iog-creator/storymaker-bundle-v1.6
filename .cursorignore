@@ -3,3 +3,4 @@
 !.envrc.example
 !.env.model-config
 !.env.config
+!.env.local

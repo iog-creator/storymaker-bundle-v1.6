@@ -1,0 +1,8 @@
+---
+name: no_bypass_gate
+steps:
+  - Prevent validation skips and bypasses
+policy: fail-closed
+owner: PM
+---
+Contract: No bypassing of validation gates.

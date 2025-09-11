@@ -7,6 +7,8 @@ It defines the **canonical architecture**, **phases**, **acceptance criteria**, 
 
 If the system drifts or fails, **rebuilding from this plan must reproduce the intended state**.
 
+> **Conceptual North Star**: see `docs/STORYMAKER_MASTER_PLAN.md` for roles, flows, and provider responsibilities.
+
 ---
 
 ## 1. Canonical Architecture (Locked)

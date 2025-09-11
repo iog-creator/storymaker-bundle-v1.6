@@ -1,8 +1,18 @@
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from services.common.envelope import envelope_ok
 from typing import Dict, Any
 app = FastAPI(title="StoryMaker Interact", version="1.6.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 PERSONAS: Dict[str, Dict[str, Any]] = {"ch_elyra":{"pov":"Elyra","invariants":["will not take a bribe"],"location":"Harbor of Lumen"}}
 @app.get("/health")
 def health(): return envelope_ok({"ok": True}, {"actor":"api"})
