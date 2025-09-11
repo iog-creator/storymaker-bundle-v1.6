@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "data": {
+    "diagnostic": "{\n  \"cliches\": 1,\n  \"examples\": [\n    \"A chosen one discovers an ancient prophecy\"\n  ]\n}"
+  },
+  "meta": {
+    "provider": "lm-studio",
+    "check": "trope-budget",
+    "latency_ms": 255
+  }
+}

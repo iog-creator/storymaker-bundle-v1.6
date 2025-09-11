@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "data": {
+    "diagnostic": "Found 2 clichés: chosen one, ancient prophecy"
+  },
+  "meta": {
+    "provider": "lm-studio",
+    "check": "trope-budget",
+    "latency_ms": 800
+  }
+}

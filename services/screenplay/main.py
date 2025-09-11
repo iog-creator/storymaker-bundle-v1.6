@@ -1,5 +1,6 @@
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Dict, Any
 from services.common.envelope import envelope_ok, envelope_error
@@ -11,6 +12,15 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="StoryMaker Screenplay", version="1.6.0")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Supported export formats
 SUPPORTED_FORMATS = ["fdx", "fountain", "pdf", "html"]

@@ -1,0 +1,8 @@
+---
+name: planning_gate
+steps:
+  - Require end-state-first planning
+policy: fail-closed
+owner: PM
+---
+Contract: Planning must be end-state-first.
