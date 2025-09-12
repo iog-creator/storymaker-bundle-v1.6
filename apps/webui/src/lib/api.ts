@@ -26,7 +26,7 @@ export type Health = { ok: boolean; name: string; detail?: string };
 export type ProofsCount = { count: number };
 
 const env = (k: string) => import.meta.env[k] as string | undefined;
-const base = (k: string, fallback?: string) => env(k) ?? fallback;
+const base = (k: string, fallback?: string) => env(k) ?? fallback ?? "http://127.0.0.1:8700";
 
 export const WORLDCORE = base("VITE_WORLDCORE_BASE", "http://127.0.0.1:8000");
 export const NARRATIVE = base("VITE_NARRATIVE_BASE", "http://127.0.0.1:8001");
@@ -89,9 +89,14 @@ export interface FlowRunResponse {
 }
 
 export async function runFlow(request: FlowRunRequest): Promise<FlowRunResponse> {
-  return postJSON<FlowRunResponse>(`${ORCHESTRATION}/run`, request);
+  return postJSON<FlowRunResponse>(`${ORCHESTRATION}/api/v1/run`, request);
 }
 
 export async function fetchOrchestrationHealth(): Promise<Health> {
-  return fetchHealth(ORCHESTRATION);
+  // Try /api/v1/health first, fallback to /healthz for robustness
+  try {
+    return await fetchHealth(`${ORCHESTRATION}/api/v1/health`);
+  } catch {
+    return await fetchHealth(`${ORCHESTRATION}/healthz`);
+  }
 }

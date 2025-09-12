@@ -1,0 +1,16 @@
+---
+name: venv-discipline
+severity: error
+on:
+  - edit
+where:
+  - "**/*.py"
+  - "scripts/**"
+  - "ci/**"
+then:
+  - run: |
+      make -s venv.check || { echo "::error ::Python must run from .venv. Run 'make venv.ensure' and retry."; exit 1; }
+    message: "All Python must execute from .venv (guard enforced)."
+---
+Ensure Cursor/terminal sessions are bound to `${workspaceFolder}/.venv`.
+This rule fails-fast on edits that would execute Python outside the venv.

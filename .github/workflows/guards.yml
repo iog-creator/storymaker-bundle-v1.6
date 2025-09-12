@@ -1,0 +1,31 @@
+name: guards
+on: [push, pull_request]
+jobs:
+  run-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: Install jq & curl
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Setup exec bits
+        run: make setup.exec
+      - name: Canonicalizer lint + regression + proof
+        run: |
+          make guards.canon.lint
+          make guards.canon
+          make guards.proof
+      - name: Boot services (no reload)
+        run: make services.up
+      - name: Tolerant health (need 2 OK)
+        run: REQ_OK=2 make guards.health
+      - name: Canonicalizer regression
+        run: make guards.canon
+      - name: Proof integrity
+        run: make guards.proof
+      - name: Cross-workspace
+        run: make workspaces.guards
+      - name: Teardown
+        if: always()
+        run: make services.down

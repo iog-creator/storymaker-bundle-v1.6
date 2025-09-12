@@ -4,6 +4,7 @@ from pathlib import Path
 import os, time, json, re
 
 router = APIRouter(prefix="/api/qa", tags=["qa"])
+router_v1 = APIRouter(prefix="/api/v1/qa", tags=["qa-v1"])
 
 PROOFS = Path("docs/proofs/agentpm"); PROOFS.mkdir(parents=True, exist_ok=True)
 
@@ -41,16 +42,42 @@ def _analyze_promises(text: str):
         ledger.append({"setup": None, "payoff": payoffs[j], "status": "extraneous"})
     return {"ledger": ledger}
 
+# API v1 endpoints (primary)
+@router_v1.post("/trope-budget")
+def trope_budget_v1(body: DraftIn):
+    return _trope_budget_handler(body)
+
+@router_v1.post("/promise-payoff")
+def promise_payoff_v1(body: DraftIn):
+    return _promise_payoff_handler(body)
+
+# Legacy endpoints (deprecated)
 @router.post("/trope-budget")
-def trope_budget(body: DraftIn):
+def trope_budget_legacy(body: DraftIn):
+    response = _trope_budget_handler(body)
+    if hasattr(response, 'headers'):
+        response.headers["Deprecation"] = "true"
+        response.headers["Sunset"] = "2025-12-31"
+        response.headers["Link"] = "</api/v1/qa/trope-budget>; rel=\"successor-version\""
+    return response
+
+@router.post("/promise-payoff")
+def promise_payoff_legacy(body: DraftIn):
+    response = _promise_payoff_handler(body)
+    if hasattr(response, 'headers'):
+        response.headers["Deprecation"] = "true"
+        response.headers["Sunset"] = "2025-12-31"
+        response.headers["Link"] = "</api/v1/qa/promise-payoff>; rel=\"successor-version\""
+    return response
+
+def _trope_budget_handler(body: DraftIn):
     t0 = time.time()
     analysis = _analyze_tropes(body.draft)
     env = {"status":"ok","data":analysis,"meta":{"provider":"lm-studio","check":"trope-budget","latency_ms":int((time.time()-t0)*1000)}}
     (PROOFS / f"qa_trope_{int(time.time())}.json").write_text(json.dumps(env, indent=2), "utf-8")
     return env
 
-@router.post("/promise-payoff")
-def promise_payoff(body: DraftIn):
+def _promise_payoff_handler(body: DraftIn):
     t0 = time.time()
     analysis = _analyze_promises(body.draft)
     env = {"status":"ok","data":analysis,"meta":{"provider":"lm-studio","check":"promise-payoff","latency_ms":int((time.time()-t0)*1000)}}

@@ -1,0 +1,26 @@
+Makefile:15:	@chmod +x ci/json_hash.py || true
+AGENTS.md:14:- Envelope v1.2 + `proof.sha256` required
+AGENTS.md:35:- **Proof SHA256 validation** - `proof.sha256` must match canonicalized response
+AGENTPM_INTEGRATION.md:36:* All calls carry `X-Request-Id` and return envelope v1.2; proofs mirror responses with `proof.sha256`.
+docs/SSOT/MANUAL.md:182:- **Proof integrity failure** → proof file must exactly match API response (`proof.sha256`).
+docs/SSOT/MASTER_PLAN.md:116:* Proofs saved only under `docs/proofs/agentpm/...` and `proof.sha256` matches API response.
+docs/AGENTS.md:13:- Proof examples must show `proof.sha256`.
+services/worldcore/AGENTS.md:18:- Envelope v1.2 + `proof.sha256`
+docs/SSOT/ASBUILT.md:61:- `proof.sha256` equals the canonicalized API response hash.
+docs/SSOT/ASBUILT.md:79:  - Enforced envelope v1.2 with `proof.sha256`
+docs/SSOT/VALIDATION_PROTOCOL.md:62:- Compare `proof.sha256`.
+docs/SSOT/VALIDATION_PROTOCOL.md:67:2) Set `.proof.sha256` to that digest, `.proof.format="canon-v1"`, and `.proof.path` to the written proof file.
+docs/SSOT/EPOCH_LEDGER.md:38:  - Proof hashes match responses (`proof.sha256`)
+docs/diagrams/graph_visualization.md:12:All nodes emit envelope v1.2 and write proofs with `proof.sha256`.
+services/common/proof_utils.py:7:    # EXACT contract used by guards (ci/json_hash.py)
+ci/json_hash.sh:3:# Usage: cat envelope.json | ci/json_hash.sh
+ci/json_hash.sh:10:jq 'del(.proof)' | jq -S -c | sed 's/: /:/g; s/, /,/g' > "$tmp"
+ci/proof_integrity_guard.sh:11:echo "$resp" | jq -e '.proof.path and .proof.sha256 and .meta.provider' >/dev/null
+ci/proof_integrity_guard.sh:13:h="$(echo "$resp" | jq -r .proof.sha256)"
+ci/proof_integrity_guard.sh:16:hr="$(echo "$resp" | ci/json_hash.py)"
+ci/proof_integrity_guard.sh:18:hf="$(jq -r . "$p" | ci/json_hash.py)"
+ci/proof_integrity_guard.sh:26:  echo "$resp" | jq 'del(.proof)' | jq -S -c > /tmp/resp.canon.json
+ci/proof_integrity_guard.sh:28:  jq 'del(.proof)' "$p" | jq -S -c > /tmp/file.canon.json
+ci/test_canonicalizer.sh:6:a="$(echo "$sample"   | ci/json_hash.py)"
+ci/test_canonicalizer.sh:7:b="$(echo "$no_proof" | ci/json_hash.py)"
+services/narrative/AGENTS.md:13:- Proofs: write to `docs/proofs/agentpm/...` with `proof.sha256`

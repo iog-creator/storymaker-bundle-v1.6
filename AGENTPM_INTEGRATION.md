@@ -12,13 +12,32 @@ Successfully integrated and **FIXED** the AgentPM workspace system into StoryMak
 - **`scripts/lib/`** - Configuration guards and database URL normalization
 - **`tools/single_envelope_guard.sh`** - Envelope validation system
 
-### 2. Environment Configuration
-Updated `.env` file with AgentPM settings:
-- **Mock mode enabled by default** (`MOCK_LMS=1`) for development without LM Studio
-- Local-first AI configuration (LM Studio at `http://127.0.0.1:1234/v1` when needed)
-- Database URL normalization
-- SSOT directory structure
-- Commit hygiene policies
+## Environment (required)
+
+```ini
+GROQ_API_KEY=...
+GROQ_MODEL=llama-3.3-70b-versatile
+
+OPENAI_API_BASE=http://127.0.0.1:1234/v1
+OPENAI_API_KEY=lm-studio
+CHAT_MODEL_PRIMARY=qwen/qwen3-8b
+CHAT_MODEL_REASON=qwen/qwen3-4b-thinking-2507
+EMBEDDING_MODEL=text-embedding-qwen3-embedding-0.6b
+EMBEDDING_DIMS=1024
+RERANKER_MODEL=qwen.qwen3-reranker-0.6b
+
+DISABLE_MOCKS=1
+MOCK_LMS=0
+```
+
+## Data Flow
+
+* Orchestration → Narrative (Groq) → QA/Retrieval (LM Studio) → Decision Gate
+* All calls carry `X-Request-Id` and return envelope v1.2; proofs mirror responses with `proof.sha256`.
+
+## Verification
+
+* Run `make verify-all` (levels 1–9); failure is a stop-ship.
 
 ### 3. Makefile Integration
 Added AgentPM targets to StoryMaker Makefile:

@@ -22,8 +22,8 @@ export default function FlowRunner({
 
   // Generate Mermaid diagram from flow state
   useEffect(() => {
-    if (state.result?.state) {
-      const { nodes, outputs } = state.result.state;
+    if (state.result?.data?.state) {
+      const { nodes, outputs } = state.result.data.state;
       const mermaid = generateMermaidDiagram(nodes, outputs);
       setMermaidCode(mermaid);
     }

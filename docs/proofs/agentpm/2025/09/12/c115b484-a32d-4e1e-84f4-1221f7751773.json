@@ -1,0 +1,84 @@
+{
+  "status": "ok",
+  "data": {
+    "beats": [
+      {
+        "id": "HOOK",
+        "note": "Opening that grabs attention",
+        "description": "Beat: Opening that grabs attention",
+        "scene_cards": []
+      },
+      {
+        "id": "STAKES",
+        "note": "What's at risk",
+        "description": "Beat: What's at risk",
+        "scene_cards": []
+      },
+      {
+        "id": "PLOT_TURN_1",
+        "note": "First major plot point",
+        "description": "Beat: First major plot point",
+        "scene_cards": []
+      },
+      {
+        "id": "PINCH_1",
+        "note": "First pinch point",
+        "description": "Beat: First pinch point",
+        "scene_cards": []
+      },
+      {
+        "id": "MIDPOINT",
+        "note": "Middle of story",
+        "description": "Beat: Middle of story",
+        "scene_cards": []
+      },
+      {
+        "id": "PINCH_2",
+        "note": "Second pinch point",
+        "description": "Beat: Second pinch point",
+        "scene_cards": []
+      },
+      {
+        "id": "PLOT_TURN_2",
+        "note": "Second major plot point",
+        "description": "Beat: Second major plot point",
+        "scene_cards": []
+      },
+      {
+        "id": "RESOLUTION",
+        "note": "Final resolution",
+        "description": "Beat: Final resolution",
+        "scene_cards": []
+      }
+    ],
+    "issues": [],
+    "ledger": {
+      "orphans": [],
+      "extraneous": []
+    },
+    "analysis": {
+      "structure_mode": "harmon_8",
+      "total_beats": 8,
+      "total_scenes": 0,
+      "promise_balance": true,
+      "trope_compliance": true
+    }
+  },
+  "error": null,
+  "meta": {
+    "ts": "2025-09-12T02:04:20.934345+00:00",
+    "actor": "ai",
+    "world_id": "verify",
+    "api_version": "v1.2",
+    "provider": "groq",
+    "model": "llama-3.3-70b-versatile",
+    "role": "creative"
+  },
+  "proof": {
+    "id": "c115b484-a32d-4e1e-84f4-1221f7751773",
+    "sha256": "ac95284b938018f4a4efd89e242f3d023440e1cf1e23b13e71a8525ab4aafe16",
+    "path": "docs/proofs/agentpm/2025/09/12/c115b484-a32d-4e1e-84f4-1221f7751773.json",
+    "written": true,
+    "format": "canon-v1"
+  }
+}

@@ -67,6 +67,23 @@ make bootstrap
    - Generates both LM Studio and Groq proofs
    - Validates all quality gates
 
+### **API Key Setup (Required for Full Functionality)**
+```bash
+# Set up your real API keys (required for creative generation)
+./setup-api-keys.sh
+
+# Edit .env.local with your real Groq API key
+# Get your key from: https://console.groq.com/
+
+# Verify everything works
+make verify-all
+```
+
+**Security Notes:**
+- `.env.local` contains real API keys (gitignored)
+- `.env` contains dummy values for git safety
+- Never commit real API keys to git
+
 ### **Post-Bootstrap Usage**
 ```bash
 # Start all services

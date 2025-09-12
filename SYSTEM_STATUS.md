@@ -1,30 +1,18 @@
 # StoryMaker System Status
 
-## ✅ WORKING SYSTEM COMPONENTS
+## Services & Health (v1.2)
 
-### 1. **Web UI** (http://localhost:5173)
-- **StoryMaker Studio v2** with full React interface
-- **Mermaid Diagram Panel** showing complete system architecture
-- **Integrated workflow**: Premise → Outline → QA Checks → Visual Flow
-- **Real-time provider status** and envelope history
-
-### 2. **Mock Services** (http://127.0.0.1:8900)
-- **FastAPI server** with all required endpoints
-- **Narrative service** (`/narrative/outline`)
-- **WorldCore QA** (`/api/qa/trope-budget`, `/api/qa/promise-payoff`)
-- **Health checks** and proper error handling
-
-### 3. **LangGraph Generator**
-- **Promptflow YAML** → **Python LangGraph** code generation
-- **Parallel-safe execution** with state reducers
-- **Node currying** for client/env injection
-- **Template expression** parsing and rendering
-
-### 4. **Visual Architecture**
-- **Mermaid diagram** showing complete system flow
-- **Real-time rendering** in the Web UI
-- **System architecture** visualization
-- **Data flow** from UI → Codegen → Runtime
+- **Endpoints**
+  - WorldCore: `/api/v1/qa/*`, `/api/v1/search/*`, `/api/v1/graph`, `/api/v1/proofs/count`
+  - Narrative: `/api/v1/narrative/outline`
+  - Orchestration: `/api/v1/run`, `/api/v1/health`, `/api/v1/healthz`
+- **Readiness**
+  - Health is **red (503)** until:
+    1) Groq reachable with `llama-3.3-70b-versatile`
+    2) LM Studio models warmed: `qwen/qwen3-8b`, `qwen/qwen3-4b-thinking-2507`,
+       `qwen.qwen3-reranker-0.6b`, `text-embedding-qwen3-embedding-0.6b`
+    3) DB reachable
+- **Provider Split**: Enforced at runtime and in CI.
 
 ## 🚀 QUICK START
 

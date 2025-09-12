@@ -1,35 +1,58 @@
+# StoryMaker — AGENTS.md (Index)
 
-# AGENTS.md — StoryMaker (v1.6 FINAL)
-- DB required; fail fast if unavailable.
-- Idempotent approve by CID.
-- Envelope-only responses.
-- Guards before merge (temporal, trope, promise/payoff).
+This repo uses **directory-scoped AGENTS.md** files. The nearest file guides agents for that area.
 
-Includes:
-@./docs/AGENTS.style.md
-@./docs/AGENTS.module.template.md
-@./docs/Cursor_System_Prompt.md
+## Map
+- `services/narrative/AGENTS.md` — creative (Groq)
+- `services/worldcore/AGENTS.md` — QA/Retrieval (LM Studio)
+- `services/orchestration/AGENTS.md` — graph host
+- `apps/webui/AGENTS.md` — frontend
+- `ci/AGENTS.md` — guards
+- `docs/AGENTS.md` — SSOT/docs
 
-## Narrative Creative Generation (Groq)
-- Narrative calls **Groq API** with `GROQ_API_KEY` (Groq API key) and `GROQ_MODEL`.
-- **70B model inference via Groq provider.**
-- After generation, Narrative must run Trope Budget & Promise/Payoff and include issues in the Envelope.
-### Runtime note
-- `.env` is auto-loaded by the Makefile targets (`api.up`, `test`). You can also run:
-  ```bash
-  set -a; source .env; set +a
-  ```
+## Global Defaults
+- Envelope v1.2 + `proof.sha256` required
+- Provider split enforced (Groq vs LM Studio)
+- `/api/v1/*` endpoints only
 
-### Groq setup (Llama-3.3-70B)
-- **Required**: Get Groq API key from https://console.groq.com/
-- Set `GROQ_API_KEY=gsk_your_groq_api_key_here`
-- Set `GROQ_MODEL=llama-3.3-70b-versatile`
-- **Direct Groq API integration** - no HF router or endpoints needed.
+## Quick Start
+```bash
+# Bootstrap everything
+make bootstrap
 
-## LM Studio Integration (Embeddings & Reranking)
-- LM Studio handles **embeddings, reranking, and planning** (NOT creative generation)
-- **Qwen 1024-dim embeddings** for content similarity and search
-- **Chat-based reranking** for content quality scoring
-- **Local model management** and health monitoring
-- Set `LM_STUDIO_URL=http://127.0.0.1:1234`
-- Set `LM_STUDIO_MODEL=qwen/qwen3-4b-2507`
+# Start all services
+make start
+
+# Run all guards
+make guards
+
+# Full verification
+make verify-all
+```
+
+## SSOT v1.2 Requirements
+- **Envelope v1.2 mandatory** - all responses must include `status`, `data`, `error`, `meta`, `proof`
+- **Proof SHA256 validation** - `proof.sha256` must match canonicalized response
+- **Provider isolation** - Groq for creative, LM Studio for QA/retrieval
+- **Model lock** - exact model IDs required and validated
+- **QA validation** - non-empty analysis required, `latency_ms > 0`
+
+## Environment Setup
+```bash
+# Groq (Creative Generation)
+GROQ_API_KEY=gsk_your_groq_api_key_here
+GROQ_MODEL=llama-3.3-70b-versatile
+
+# LM Studio (QA & Retrieval)
+OPENAI_API_BASE=http://127.0.0.1:1234/v1
+OPENAI_API_KEY=lm-studio
+CHAT_MODEL_PRIMARY=qwen/qwen3-8b
+CHAT_MODEL_REASON=qwen/qwen3-4b-thinking-2507
+RERANKER_MODEL=qwen.qwen3-reranker-0.6b
+EMBEDDING_MODEL=text-embedding-qwen3-embedding-0.6b
+EMBEDDING_DIMS=1024
+
+# Production Controls
+DISABLE_MOCKS=1
+MOCK_LMS=0
+```

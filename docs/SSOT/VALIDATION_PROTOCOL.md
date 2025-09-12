@@ -40,6 +40,55 @@
 - **Checks**: SSOT rules exist and synced to `.cursor/rules/`
 - **Purpose**: Ensure Builder rails are active
 
+### Level 7 — Model Lock
+- Validate exact model IDs and embedding dims.
+- Must match:  
+  - Groq: `llama-3.3-70b-versatile`  
+  - Chat: `qwen/qwen3-8b`  
+  - Reasoning: `qwen/qwen3-4b-thinking-2507`  
+  - Reranker: `qwen.qwen3-reranker-0.6b`  
+  - Embeddings: `text-embedding-qwen3-embedding-0.6b` (dims=1024)
+
+### Level 8 — Retrieval Smoke
+- `/api/v1/search/embed` → length 1024, non-zero, different per text.
+- `/api/v1/search/rerank` → scores sorted descending, provider=lm-studio.
+- **QA endpoints validation**:
+  - `/api/v1/qa/trope-budget` → `data.used > 0`, `data.notes` not empty, `latency_ms > 0`
+  - `/api/v1/qa/promise-payoff` → `data.used > 0`, `data.notes` not empty, `latency_ms > 0`
+  - **Fail if QA returns empty analysis** - "status:ok with empty data" prohibited
+
+### Level 9 — Proof Integrity
+- Proof files must be byte-for-byte canonical copies of responses.
+- Compare `proof.sha256`.
+
+#### Proof Hash Contract — `canon-v1`
+Services MUST:
+1) Compute `sha256` over the envelope **with `.proof` removed`, then JSON-dump with `sort_keys=True` and `separators=(",", ":")`.
+2) Set `.proof.sha256` to that digest, `.proof.format="canon-v1"`, and `.proof.path` to the written proof file.
+3) Write the **full** envelope (including `.proof`) with the same dump settings.
+Guards SHALL recompute the digest by removing `.proof` and using the same dump settings for **both** the HTTP response and the proof file contents.
+
+**Canonicalizer Discipline**: All proof hashing MUST use `ci/json_hash.py` as the single source of truth. No jq-based canonicalization is permitted. The `guards.canon.lint` target enforces this discipline and fails fast on any jq usage in guards or scripts.
+
+#### Service Health Contract (guard-friendly)
+Implement at least one health path per service. Recommended:
+`/health` (simple 200), `/api/v1/health` (JSON payload), `/healthz` (k8s-style).
+Preflight auto-detects orchestration's health path and passes if at least `REQ_OK`
+endpoints are healthy (default 3). You may override with `ORCH_HEALTH_OVERRIDE`.
+
+#### Preflight Ordering
+Run tolerant health first; strict model checks are optional. Guards MUST NOT fail
+before tolerant health completes. Enforce strict checks only with `PREFLIGHT_STRICT=1`.
+WorldCore reload is disabled by default in `services.up`; set `WORLDCORE_RELOAD=1` if needed.
+
+### Level 10 — Stability & Isolation
+- Rerank-monotonic: strict ordering
+- Soak-and-concurrency: ≥100 requests pass
+- Provider-isolation: fail-closed on wrong provider
+- Fresh-shell-env: all guards green in new shell
+
+> `make verify-all` must include Levels 1–10.
+
 ### Evidence Requirements
 
 #### LM Studio Evidence

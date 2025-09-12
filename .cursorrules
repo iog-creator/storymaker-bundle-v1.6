@@ -1,0 +1,10 @@
+## SSOT Discipline
+- Resolve SSOT via docs/SSOT/ssot.locator; do not hardcode paths.
+- Do not add new env variables that duplicate meaning; extend docs/SSOT/models.lock.json and re-render.
+- For docs duplicated in AgentPM, use Pointer stubs (no content forks).
+- Use ci/json_hash.py only; no jq-based canonicalization.
+- After edits in services/**, ci/**, docs/SSOT/**:
+  - make ssot.env.render && make ssot.env.check
+  - make ssot.sync.docs
+  - make scripts.unique
+  - make agentpm.verify

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storymaker.ai/schemas/envelope.v1.2.json",
+  "type": "object",
+  "required": ["status","meta","proof"],
+  "properties": {
+    "status": {"enum":["ok","error"]},
+    "data": {"type":["object","null"]},
+    "error": {
+      "type":["object","null"],
+      "required":["code","message"],
+      "properties":{"code":{"type":"string"},"message":{"type":"string"},"details":{"type":["object","null"]}}
+    },
+    "meta": {
+      "type":"object",
+      "required":["api_version","request_id","provider","model","role","created_at","latency_ms"],
+      "properties":{
+        "api_version":{"const":"v1.2"},
+        "request_id":{"type":"string"},
+        "provider":{"enum":["groq","lm-studio","system"]},
+        "model":{"type":"string"},
+        "role":{"enum":["creative","qa","retrieval","system"]},
+        "latency_ms":{"type":"number","minimum":0},
+        "created_at":{"type":"string","format":"date-time"},
+        "embedding_dims":{"type":"number"}
+      }
+    },
+    "proof": {
+      "type":"object",
+      "required":["id","path","written","sha256"],
+      "properties":{
+        "id":{"type":"string"},
+        "path":{"type":"string"},
+        "written":{"const":true},
+        "sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"}
+      }
+    }
+  }
+}

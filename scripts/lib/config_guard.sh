@@ -2,7 +2,7 @@
 # config_guard.sh — fail-closed validation of SSOT config.
 set -euo pipefail
 
-req_vars=(OPENAI_API_BASE OPENAI_API_KEY DATABASE_URL EMBEDDING_DIMS CHAT_MODEL EMBEDDING_MODEL)
+req_vars=(OPENAI_API_BASE OPENAI_API_KEY DATABASE_URL EMBEDDING_DIMS CHAT_MODEL_PRIMARY EMBEDDING_MODEL)
 missing=()
 for v in "${req_vars[@]}"; do
   [[ -n "${!v:-}" ]] || missing+=("$v")

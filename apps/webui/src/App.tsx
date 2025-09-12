@@ -20,6 +20,7 @@ import QAView from "./components/QAView";
 import GraphPanel from "./components/GraphPanel";
 import OnboardingHint from "./components/OnboardingHint";
 import MermaidPanel from "./components/MermaidPanel";
+import FlowRunner from "./components/FlowRunner";
 function ShortcutHint(){
   const [open, setOpen] = React.useState(false);
   React.useEffect(()=>{
@@ -531,7 +532,7 @@ export default function StoryMakerStudio(){
 
         {/* Center: Creative Flow */}
         <section className="lg:col-span-6 space-y-4">
-          <CreativeFlow onEnvelope={addEnvelope} onQA={setQA} />
+          <FlowRunner orchestrationBase="http://127.0.0.1:8700" />
           <MermaidPanel code={`graph TB
     subgraph "User Interface Layer"
       UI1["Story Maker Studio<br/>React Frontend"]

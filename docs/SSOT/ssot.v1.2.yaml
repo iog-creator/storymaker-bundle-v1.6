@@ -1,0 +1,31 @@
+version: 1.2
+providers:
+  creative:
+    vendor: groq
+    model: llama-3.3-70b-versatile
+  lms:
+    base: http://127.0.0.1:1234/v1
+    chat_primary: qwen/qwen3-8b
+    chat_reason: qwen/qwen3-4b-thinking-2507
+    reranker: qwen.qwen3-reranker-0.6b
+    embedder: text-embedding-qwen3-embedding-0.6b
+    dims: 1024
+api:
+  base: /api/v1
+  endpoints:
+    narrative_outline: POST /narrative/outline
+    qa_trope: POST /qa/trope-budget
+    qa_payoff: POST /qa/promise-payoff
+    embed: POST /search/embed
+    rerank: POST /search/rerank
+    run: POST /run
+    health: GET /health
+    healthz: GET /healthz
+proofs:
+  path: docs/proofs/agentpm
+  must_include_sha256: true
+validation:
+  qa_nonempty: true
+  latency_positive: true
+  rerank_monotonic: true
+  embed_dims: 1024

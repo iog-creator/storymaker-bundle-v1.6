@@ -277,8 +277,10 @@ def create_app() -> FastAPI:
     # Routers (search, qa etc.)
     from services.worldcore.api import search, qa
     from services.worldcore.api_approve import router as approve_router
-    app.include_router(search.router)  # Re-enabled - search API ready
-    app.include_router(qa.router)  # QA endpoints for LM Studio checks
+    app.include_router(search.router)  # Re-enabled - search API ready (legacy)
+    app.include_router(search.router_v1)  # Search v1 endpoints
+    app.include_router(qa.router)  # QA endpoints for LM Studio checks (legacy)
+    app.include_router(qa.router_v1)  # QA v1 endpoints
     app.include_router(approve_router)
 
     # Stable proofs count alias

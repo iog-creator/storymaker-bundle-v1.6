@@ -27,6 +27,20 @@ Ledger of epoch transitions, PR completions, and ADRs.
 - **Deliverables**: Graph extraction/query, SLO checks, background agent, public API, reranker, nightly monitoring
 - **Working**: Graph queries return SSOT relations, 72ms p95 latency, autonomous operation
 
+## E05 — SSOT v1.2 Lock-In (Complete 2025-09-11)
+
+- **Scope**: versioned API (`/api/v1/*`), envelope v1.2, provider split, model lock, retrieval invariants, proof integrity.
+- **Deliverables**:
+  - New v1 routers + deprecation headers on legacy paths
+  - CI guards: model-lock, retrieval-smoke, proof-integrity, rerank-monotonic, soak-concurrency, provider-isolation, fresh-shell-env
+- **Exit Criteria**:
+  - All guards green in a fresh shell
+  - Proof hashes match responses (`proof.sha256`)
+  - Embeddings `dims=1024` always
+  - Rerank scores sorted descending
+  - Soak/concurrency passes without service crash
+  - Narrative (Groq) and QA/Retrieval (LM Studio) isolated
+
 ## Completed PRs
 - PR-0000: MASTER_PLAN v1 (All-Epochs, Idempotent, Agent-Ready)
 - PR-0001: SSOT rebuild E01 handoff

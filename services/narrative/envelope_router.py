@@ -21,7 +21,7 @@ class OutlineIn(BaseModel):
     premise: str
     mode: str = "outline"
 
-@router.post("/narrative/outline")
+@router.post("/api/v1/narrative/outline")
 def outline(body: OutlineIn):
     t0 = time.time()
     draft = generate_story_beat_description(body.premise)
