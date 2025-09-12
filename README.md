@@ -1,4 +1,6 @@
-# AgentPM Prototype
+# StoryMaker
+
+[![SSOT & Venv Guards](https://github.com/mccoy/StoryMaker/actions/workflows/ssot.yml/badge.svg)](https://github.com/mccoy/StoryMaker/actions/workflows/ssot.yml)
 
 **Local-First AI Project Management System**
 

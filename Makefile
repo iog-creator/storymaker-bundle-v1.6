@@ -169,17 +169,8 @@ proofs-guard:
 rules-guard:
 	@bash ci/rules_presence_guard.sh
 
-guards: ci-perms
-	@bash -lc 'source ci/_load_env.sh; \
-	 ci/agents_md_presence_guard.sh && \
-	 ci/agents_md_sections_guard.sh && \
-	 ci/no_legacy_routes_guard.sh && \
-	 ci/model_lock_guard.sh && \
-	 ci/retrieval_smoke_guard.sh && \
-	 ci/qa_nonempty_guard.sh && \
-	 ci/proof_integrity_guard.sh && \
-	 ci/provider_isolation_guard.sh && \
-	 ci/fresh_shell_env_guard.sh'
+guards: ssot.guards
+	@echo "✅ guards: all rails green"
 
 # === Proof-Grade Verification Guards ===
 .PHONY: proof-guards proof-envelope proof-embedding proof-rerank proof-integrity proof-isolation proof-fresh-shell proof-soak
