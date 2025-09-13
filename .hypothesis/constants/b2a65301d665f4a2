@@ -1,0 +1,4 @@
+# file: /home/mccoy/Projects/StoryMaker/storymaker-bundle-v1.6-unified-full/packages/pmagent/envelope_validator.py
+# hypothesis_version: 6.138.15
+
+['%Y%m%dT%H%M%SZ', '1.1.0-pr000', 'INVALID_DATA_FIELD', 'INVALID_ERROR_FIELD', 'INVALID_STATUS', 'INVALID_TYPE', 'MISSING_DATA', 'MISSING_ERROR', 'MISSING_META', 'MISSING_STATUS', 'VALIDATION_ERROR', 'api', 'code', 'data', 'docs', 'envelope.schema.json', 'error', 'manifest.txt', 'message', 'meta', 'ok', 'properties', 'r', 'rb', 'run_id', 'schema_version', 'schemas', 'source', 'status', 'timestamp', 'utf-8', 'w']
