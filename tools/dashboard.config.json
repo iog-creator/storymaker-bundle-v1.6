@@ -1,0 +1,62 @@
+{
+  "poll_ms": 1000,
+  "tiles": [
+    {
+      "id": "lmstudio",
+      "title": "LM Studio",
+      "type": "service",
+      "healthz": "http://127.0.0.1:1234/healthz",
+      "info": "http://127.0.0.1:1234/v1/models",
+      "every_ms": 2000
+    },
+    {
+      "id": "groq",
+      "title": "Groq (Creative)",
+      "type": "env",
+      "env": ["GROQ_API_KEY", "GROQ_MODEL"],
+      "every_ms": 4000
+    },
+    {
+      "id": "agentpm",
+      "title": "AgentPM",
+      "type": "git",
+      "paths": ["docs/SSOT"],
+      "every_ms": 1500
+    },
+    {
+      "id": "storymaker",
+      "title": "StoryMaker",
+      "type": "git",
+      "paths": ["."],
+      "every_ms": 1500
+    },
+    {
+      "id": "ssot_rules",
+      "title": "SSOT Rules (.mdc)",
+      "type": "rules",
+      "dir": ".cursor/rules",
+      "every_ms": 1500
+    },
+    {
+      "id": "envelopes",
+      "title": "Envelopes & Proofs",
+      "type": "proofs",
+      "dir": "docs/proofs/agentpm",
+      "every_ms": 1500
+    },
+    {
+      "id": "docs_auto",
+      "title": "Docs Autosync",
+      "type": "command",
+      "cmd": "make -s guards.canon",
+      "every_ms": 4000
+    },
+    {
+      "id": "rerank_qa",
+      "title": "Rerank & QA Guards",
+      "type": "commands_detailed",
+      "cmds": ["make -s guards.rerank.order", "make -s guards.qa.latency"],
+      "every_ms": 5000
+    }
+  ]
+}

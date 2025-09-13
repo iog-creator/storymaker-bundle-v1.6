@@ -1,0 +1,13 @@
+---
+name: qa-latency-gate
+severity: error
+on:
+  - edit
+where:
+  - "docs/proofs/agentpm/**/*.json"
+  - "ci/guards/**"
+then:
+  - run: make -s guards.qa.latency
+    message: "QA proofs must have latency_ms > 0 and non-empty analysis."
+---
+Proofs must be meaningful: latency_ms > 0; analysis non-empty; used flag (if present) truthy.

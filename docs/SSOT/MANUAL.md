@@ -198,3 +198,10 @@ All verification evidence must be in `docs/proofs/agentpm/` - this is enforced b
 
 ### SSOT Rules
 Rules are authored in `docs/SSOT/rules/*.mdc` and synced to `.cursor/rules/` by `make rules-sync`.
+
+## Automation Usage
+For CI/scripts: Always use `pmagent preflight --json`.
+- Assert exit code == 0.
+- Parse stdout as JSON (Content-Type: application/json implied; pipe to jq '.status == "ok"').
+- On fail: exit 1 + stderr diagnostics; stdout is still valid envelope (for error inspection).
+- Example: `pmagent preflight --json | jq -e '.status == "ok"' || exit 1`

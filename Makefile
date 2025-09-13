@@ -43,6 +43,7 @@ help:
 	@echo "  make start     - Start StoryMaker (one command)"
 	@echo "  make status    - Check if everything is running"
 	@echo "  make stop      - Stop all services"
+	@echo "  make ui.live   - Launch live monitoring dashboard"
 	@echo ""
 	@echo "Development:"
 	@echo "  make setup     - Install development tools"
@@ -169,8 +170,6 @@ proofs-guard:
 rules-guard:
 	@bash ci/rules_presence_guard.sh
 
-guards: ssot.guards
-	@echo "✅ guards: all rails green"
 
 # === Proof-Grade Verification Guards ===
 .PHONY: proof-guards proof-envelope proof-embedding proof-rerank proof-integrity proof-isolation proof-fresh-shell proof-soak
@@ -201,9 +200,6 @@ proof-fresh-shell:
 proof-soak:
 	@bash -c 'source ci/_load_env.sh; ./ci/soak_and_concurrency_guard.sh'
 
-.PHONY: rules-emit
-rules-emit:
-	@python3 scripts/mdc_to_cursor_rules.py
 
 verify: rules-emit guards
 	@echo "All guards passed."
@@ -222,24 +218,6 @@ verify-narrative:
 verify-lms:
 	@bash scripts/verify_lms.sh
 
-# Ensure both proofs exist and rules are emitted before live verify
-verify-all: rules-emit rules-guard proofs-guard
-	@echo "=== STORYMAKER VERIFICATION ==="
-	@echo "1. Config check..."
-	@bash -c 'source .env && $(MAKE) config-check'
-	@echo "2. LM Studio check..."
-	@bash -c 'source .env && $(MAKE) verify-lms'
-	@echo "3. Preflight check..."
-	@bash -c 'source .env && $(MAKE) verify-preflight'
-	@echo "4. Live verification..."
-	@bash -c 'source .env && $(MAKE) verify-live'
-	@echo "5. Narrative proof..."
-	@bash -c 'source .env && $(MAKE) verify-narrative'
-	@echo "6. SSOT v1.2 self-test..."
-	@bash -c 'source .env && ./ci/ssot_v1_2_self_test.sh'
-	@echo "7. Proof-grade verification guards..."
-	@bash -c 'source .env && $(MAKE) proof-guards'
-	@echo "✅ ALL VERIFICATIONS PASSED"
 
 # === Orchestration (Promptflow → LangGraph) ===
 .PHONY: graph-generate graph-verify
@@ -354,9 +332,32 @@ rules.check:
 rules.clean:
 	@rm -rf .cursor/rules && mkdir -p .cursor/rules && echo "cleaned .cursor/rules"
 
+# --- Back-compat aliases (older docs/tools expect these) ---
+.PHONY: rules-emit guards verify-all
+rules-emit: ## alias → rules.emit
+	@$(MAKE) -s rules.emit
+guards: ## alias → ssot.guards
+	@$(MAKE) -s ssot.guards
+verify-all: ## alias → ssot.guards
+	@$(MAKE) -s ssot.guards
+
+# --- Agents pointers (dedupe AGENTS.md in workspace) ---
+.PHONY: agents.pointers agents.pointers.check
+agents.pointers:
+	@bash tools/agents_pointerize.sh
+agents.pointers.check:
+	@bash ci/guards/agents_pointers_guard.sh
+
+# --- Proof guards: QA latency + rerank monotonicity ---
+.PHONY: guards.qa.latency guards.rerank.order
+guards.qa.latency:
+	@.venv/bin/python ci/guards/qa_latency_guard.py
+guards.rerank.order:
+	@.venv/bin/python ci/guards/rerank_monotonic_guard.py
+
 # Optional aggregator if you use it in CI:
 .PHONY: ssot.guards
-ssot.guards: venv.check ssot.env.check scripts.unique rules.check
+ssot.guards: venv.check ssot.env.check scripts.unique rules.check agents.pointers.check guards.qa.latency guards.rerank.order
 	@bash ci/guards/rules_no_md_guard.sh
 	@echo "✅ ssot.guards ok"
 
@@ -401,3 +402,16 @@ verify.canon:
 	  make guards.canon.lint; \
 	  make guards.canon; \
 	  make guards.proof'
+
+# --- Live dashboard ---
+.PHONY: ui.live ui.install
+ui.install:
+	@command -v node >/dev/null || { echo "Node is required."; exit 1; }
+	@command -v npm  >/dev/null || { echo "npm is required."; exit 1; }
+	@npm install --no-audit --no-fund
+ui.live: ui.install
+	@npm run live
+
+ui.web: ## Launch web-based dashboard with SSE and hotkeys
+	@echo "Starting web dashboard..."
+	@./tools/start_web_dashboard.sh

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentPM Console</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #1a1a1a; color: #00ff00; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .controls { margin-bottom: 20px; }
+        .controls ul { list-style: none; padding: 0; display: flex; gap: 10px; }
+        .controls button { 
+            background: #333; color: #00ff00; border: 1px solid #555; 
+            padding: 8px 16px; cursor: pointer; font-family: monospace;
+        }
+        .controls button:hover { background: #555; }
+        .inspector { 
+            background: #000; border: 1px solid #333; padding: 15px; 
+            white-space: pre-wrap; font-size: 12px; max-height: 400px; overflow-y: auto;
+        }
+        .status { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .status.ok { background: #0a3a0a; border: 1px solid #0a6a0a; }
+        .status.error { background: #3a0a0a; border: 1px solid #6a0a0a; }
+        .help-panel { 
+            position: fixed; top: 0; right: -300px; width: 300px; height: 100vh; 
+            background: #222; border-left: 1px solid #555; padding: 20px; 
+            transition: right 0.3s; z-index: 1000; overflow-y: auto;
+        }
+        .help-panel.open { right: 0; }
+        .help-panel h3 { color: #00ff00; margin-top: 0; }
+        .help-panel p { margin: 10px 0; line-height: 1.4; }
+        .help-panel code { background: #333; padding: 2px 4px; border-radius: 2px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AgentPM Console</h1>
+            <p>UI-First Hardening Dashboard</p>
+        </div>
+        
+        <div class="controls">
+            <ul>
+                <li><button id="btn-health">Health</button></li>
+                <li><button id="btn-version">Version</button></li>
+                <li><button id="btn-proofs">Proofs</button></li>
+                <li><button id="btn-help">Help (H)</button></li>
+            </ul>
+        </div>
+        
+        <div id="envelope-inspector" class="inspector">
+            Click a button to inspect API responses...
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+    
+    <div id="help-panel" class="help-panel">
+        <h3>AgentPM Console Help</h3>
+        <p><strong>Health:</strong> Check system health and component presence</p>
+        <p><strong>Version:</strong> Get API version and schema information</p>
+        <p><strong>Proofs:</strong> List available proof packs</p>
+        <p><strong>Keyboard:</strong> Press 'H' to toggle this help panel</p>
+        <p><strong>API:</strong> All endpoints return enveloped JSON responses</p>
+        <p><strong>Schema:</strong> Responses validated against envelope.schema.json</p>
+    </div>
+
+    <script>
+        let schema = null;
+        fetch('/agentpm/schemas/envelope.schema.json').then(r => r.json()).then(s => { schema = s; });
+        
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${isError ? 'error' : 'ok'}`;
+            status.style.display = 'block';
+            setTimeout(() => status.style.display = 'none', 3000);
+        }
+        
+        function call(endpoint) {
+            const inspector = document.getElementById('envelope-inspector');
+            inspector.textContent = 'Loading...';
+            
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => {
+                    inspector.textContent = JSON.stringify(data, null, 2);
+                    showStatus(`✓ ${endpoint} - ${data.status}`, data.status === 'error');
+                })
+                .catch(error => {
+                    inspector.textContent = `Error: ${error.message}`;
+                    showStatus(`✗ ${endpoint} - ${error.message}`, true);
+                });
+        }
+        
+        function toggleHelp() {
+            const panel = document.getElementById('help-panel');
+            panel.classList.toggle('open');
+        }
+        
+        // Event listeners
+        document.getElementById('btn-health').onclick = () => call('/agentpm/healthz');
+        document.getElementById('btn-version').onclick = () => call('/agentpm/version');
+        document.getElementById('btn-proofs').onclick = () => call('/agentpm/proofs');
+        document.getElementById('btn-help').onclick = toggleHelp;
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'h') {
+                toggleHelp();
+            }
+        });
+    </script>
+</body>
+</html>

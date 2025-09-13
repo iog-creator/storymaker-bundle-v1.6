@@ -1,0 +1,13 @@
+---
+name: rerank-monotonic-gate
+severity: error
+on:
+  - edit
+where:
+  - "docs/proofs/agentpm/**/*.json"
+  - "ci/guards/**"
+then:
+  - run: make -s guards.rerank.order
+    message: "Rerank results must be sorted non-increasing by score."
+---
+Reranker outputs must be sorted by score (non-increasing). Any violation fails closed.

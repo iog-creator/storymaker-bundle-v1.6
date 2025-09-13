@@ -17,3 +17,4 @@ Doc sources. SSOT is here.
 
 # Pointers
 - Master plan: `docs/SSOT/MASTER_PLAN.md`
+- Live dashboard: `docs/LIVE_DASHBOARD.md`

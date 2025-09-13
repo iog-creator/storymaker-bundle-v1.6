@@ -87,7 +87,21 @@ WorldCore reload is disabled by default in `services.up`; set `WORLDCORE_RELOAD=
 - Provider-isolation: fail-closed on wrong provider
 - Fresh-shell-env: all guards green in new shell
 
-> `make verify-all` must include Levels 1–10.
+### Level 11 — Proof Quality Gates
+
+#### QA Latency Guard
+- Ensures QA/retrieval proofs are meaningful
+- **Requires** `latency_ms > 0`
+- **Requires** non-empty analysis text (when present)
+- **Requires** truthy `used` flag (if present)
+- Command: `make guards.qa.latency`
+
+#### Rerank Monotonicity Guard
+- Ensures reranker outputs are **sorted non-increasing** by score
+- Accepts common shapes: `items/candidates/results[ ].score`, including under `data`
+- Command: `make guards.rerank.order`
+
+> `make verify-all` must include Levels 1–11.
 
 ### Evidence Requirements
 
@@ -134,19 +148,23 @@ make verify-live    # End-to-end integration test
 
 #### Guard Validation
 ```bash
-make guards         # Run all 6 CI guards
+make guards         # Run all guards (alias → ssot.guards)
+make guards.qa.latency      # QA proof quality validation
+make guards.rerank.order    # Rerank monotonicity validation
 ./ci/env_config_guard.sh
 ./ci/no_mocks_env_guard.sh
 ./ci/provider_split_guard.sh
 ./ci/proofs_path_guard.sh
 ./ci/ssot_guard.sh
 ./ci/rules_presence_guard.sh
+./ci/guards/qa_latency_guard.py
+./ci/guards/rerank_monotonic_guard.py
 ```
 
 ### Success Criteria
 
 #### System is Valid When:
-1. ✅ All 6 CI guards pass
+1. ✅ All guards pass (including new QA latency and rerank monotonicity guards)
 2. ✅ Both LM Studio and Groq generate valid proofs
 3. ✅ All evidence is in canonical path `docs/proofs/agentpm/`
 4. ✅ SSOT documentation is complete and rules are synced

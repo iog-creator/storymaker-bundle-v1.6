@@ -17,3 +17,5 @@ jobs:
         run: make -s rules.emit
       - name: Run guard suite
         run: make -s ssot.guards
+
+

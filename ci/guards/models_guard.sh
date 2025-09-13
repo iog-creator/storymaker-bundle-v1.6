@@ -40,3 +40,5 @@ done
 
 echo "models_guard: $ok/$total envs match lock"
 [ $ok -eq $total ] || exit 1
+
+

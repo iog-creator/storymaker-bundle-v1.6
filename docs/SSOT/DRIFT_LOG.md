@@ -41,3 +41,15 @@ This document tracks drift from the Single Source of Truth (SSOT) and documents 
   - Updated CI to run canonicalizer verification before other guards
   - Added PR template with canonicalizer discipline checklist
 - Result: Single canonicalizer enforced everywhere; zero drift vectors; comprehensive audit trails.
+
+## Agents Pointerization + Proof Quality Gates (2025-09-12)
+
+**PR-SSOT-REM-003 closeout.**
+
+- Converted all workspace `AGENTS.md` copies to **pointer stubs** (no content forks)
+- Added **QA Latency Guard** (latency_ms > 0, non-empty analysis, truthy `used`)
+- Added **Rerank Monotonicity Guard** (scores must be non-increasing)
+- Wired guards into Cursor rules + `Makefile` (`guards.qa.latency`, `guards.rerank.order`)
+- Integrated into `ssot.guards` and CI; fail-closed on violations
+ 
+ 

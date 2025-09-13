@@ -34,3 +34,5 @@ AGENTPM_GRAPH_EMBEDDING_DIMENSIONS=$EMBEDDING_DIMS
 EOF
 
 echo "envs rendered: .env.generated | .agentpm_workspace/.env.generated"
+
+

@@ -28,6 +28,9 @@ make guards
 
 # Full verification
 make verify-all
+
+# Live monitoring dashboard
+make ui.live
 ```
 
 ## SSOT v1.2 Requirements
@@ -56,3 +59,31 @@ EMBEDDING_DIMS=1024
 DISABLE_MOCKS=1
 MOCK_LMS=0
 ```
+
+## Live Monitoring Dashboard
+
+The live dashboard provides real-time visual monitoring of all StoryMaker systems:
+
+```bash
+# Launch live dashboard
+make ui.live
+# Press 'q' to exit
+```
+
+**Dashboard Features:**
+- **8 monitoring tiles** with 1-second refresh
+- **Color-coded status**: Green (healthy), Yellow (warnings), Red (errors)
+- **Live file watching** with blinking indicators on changes
+- **Real-time guard execution** showing pass/fail status
+- **Service health checks** for LM Studio and Groq
+- **Proof statistics** and document change tracking
+
+**Monitored Systems:**
+- LM Studio (health + model info)
+- Groq (environment validation)
+- AgentPM (SSOT document changes)
+- StoryMaker (implementation status)
+- SSOT Rules (.mdc file count)
+- Envelopes & Proofs (statistics + age)
+- Docs Autosync (canonicalization status)
+- Rerank & QA Guards (live execution results)

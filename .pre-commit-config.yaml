@@ -11,3 +11,8 @@ repos:
         entry: bash -lc "make -s ssot.env.check rules.check scripts.unique"
         language: system
         pass_filenames: false
+      - id: rules-emit-compat
+        name: rules-emit (compat)
+        entry: bash -lc "make -s rules-emit"
+        language: system
+        pass_filenames: false
