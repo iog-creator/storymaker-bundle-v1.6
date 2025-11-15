@@ -12,7 +12,7 @@ import logging
 import subprocess
 import sys
 import pathlib
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
 
@@ -91,8 +91,8 @@ def generate_story_beat_description(beat_id: str, beat_note: str, premise: str, 
     """Generate detailed description for a story beat using Groq"""
     try:
         # Import Groq client lazily
-        from services.narrative.scribe.hf_client import generate as hf_generate
-        result = hf_generate("outline", {
+        from services.narrative.scribe.hf_client import generate as groq_generate
+        result = groq_generate("outline", {
             "premise": premise,
             "beat_id": beat_id,
             "beat_note": beat_note,
@@ -121,8 +121,8 @@ def generate_plot_idea(premise: str, genre: str = "fantasy", constraints: List[s
 def generate_character_profile(name: str, role: str, world_context: str) -> Dict[str, Any]:
     """Generate character profile using Groq"""
     try:
-        from services.narrative.scribe.hf_client import generate as hf_generate
-        result = hf_generate("character_bible", {
+        from services.narrative.scribe.hf_client import generate as groq_generate
+        result = groq_generate("character_bible", {
             "name": name,
             "role": role,
             "world_context": world_context
@@ -148,8 +148,8 @@ def generate_character_profile(name: str, role: str, world_context: str) -> Dict
 def generate_dialogue(scene_context: str, characters: List[str], tone: str = "natural") -> str:
     """Generate dialogue for a scene using Groq"""
     try:
-        from services.narrative.scribe.hf_client import generate as hf_generate
-        result = hf_generate("scene", {
+        from services.narrative.scribe.hf_client import generate as groq_generate
+        result = groq_generate("scene", {
             "scene_context": scene_context,
             "characters": ', '.join(characters),
             "tone": tone
@@ -234,8 +234,22 @@ def health():
     """Health check endpoint"""
     return envelope_ok({"ok": True}, {"actor": "api"})
 
+@app.post("/api/v1/narrative/outline")
+def outline_v1(req: OutlineReq):
+    """Primary API v1 endpoint for narrative outline generation"""
+    return _outline_handler(req)
+
 @app.post("/narrative/outline/v1")
-def outline(req: OutlineReq):
+def outline_legacy(req: OutlineReq):
+    """Legacy endpoint - deprecated, use /api/v1/narrative/outline"""
+    response = _outline_handler(req)
+    if hasattr(response, 'headers'):
+        response.headers["Deprecation"] = "true"
+        response.headers["Sunset"] = "2025-12-31"
+        response.headers["Link"] = "</api/v1/narrative/outline>; rel=\"successor-version\""
+    return response
+
+def _outline_handler(req: OutlineReq):
     """Generate narrative outline with story structure and AI-enhanced descriptions"""
     try:
         # Get story structure based on mode
@@ -321,12 +335,19 @@ def outline(req: OutlineReq):
             "trope_compliance": ok_trope
         }
         
-        return envelope_ok({
+        # Create envelope response
+        envelope = envelope_ok({
             "beats": [beat.model_dump() for beat in beats],
             "issues": issues,
             "ledger": ledger,
             "analysis": analysis
-        }, {"actor": "ai", "world_id": req.world_id})
+        }, {"actor": "ai", "world_id": req.world_id, "api_version": "v1.2", "provider": "groq", "model": "llama-3.3-70b-versatile", "role": "creative"})
+        
+        # Write proof with SHA256 validation
+        from services.common.proof_utils import write_proof
+        envelope = write_proof(envelope)
+        
+        return envelope
         
     except Exception as e:
         logger.error(f"Failed to generate outline: {e}")
@@ -442,7 +463,8 @@ class DialogueGenReq(BaseModel):
 def generate_plot(req: GenReq):
     """Generate a complete plot outline using Groq 70B"""
     try:
-        out = hf_generate("logline", req.inputs, req.options)
+        from services.narrative.scribe.hf_client import generate as groq_generate
+        out = groq_generate("logline", req.inputs, req.options)
         return envelope_ok({
             "draft": out["draft"],
             "issues": out["issues"],
@@ -460,7 +482,8 @@ def generate_plot(req: GenReq):
 def generate_character(req: GenReq):
     """Generate a detailed character profile using Groq 70B"""
     try:
-        out = hf_generate("character_bible", req.inputs, req.options)
+        from services.narrative.scribe.hf_client import generate as groq_generate
+        out = groq_generate("character_bible", req.inputs, req.options)
         return envelope_ok({
             "draft": out["draft"],
             "issues": out["issues"],
@@ -478,7 +501,8 @@ def generate_character(req: GenReq):
 def generate_dialogue_endpoint(req: GenReq):
     """Generate dialogue for a scene using Groq 70B"""
     try:
-        out = hf_generate("scene", req.inputs, req.options)
+        from services.narrative.scribe.hf_client import generate as groq_generate
+        out = groq_generate("scene", req.inputs, req.options)
         return envelope_ok({
             "draft": out["draft"],
             "issues": out["issues"],

@@ -1,59 +1,32 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": [
-    "status",
-    "meta"
-  ],
   "properties": {
     "status": {
-      "enum": [
-        "ok",
-        "error"
-      ]
+      "type": "string",
+      "enum": ["ok", "error"]
     },
     "data": {
-      "type": [
-        "object",
-        "null"
-      ]
+      "type": ["object", "null"]
     },
     "error": {
-      "type": [
-        "object",
-        "null"
-      ],
+      "type": ["object", "null"],
       "properties": {
-        "code": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
-          "type": "object"
-        }
-      }
+        "code": {"type": "string"},
+        "message": {"type": "string"}
+      },
+      "required": ["code", "message"]
     },
     "meta": {
       "type": "object",
-      "required": [
-        "ts"
-      ],
       "properties": {
-        "ts": {
-          "type": "string"
-        },
-        "actor": {
-          "type": "string"
-        },
-        "world_id": {
-          "type": "string"
-        },
-        "cid": {
-          "type": "string"
-        }
-      }
+        "run_id": {"type": "string"},
+        "timestamp": {"type": "string"},
+        "source": {"type": "string"},
+        "schema_version": {"type": "string"}
+      },
+      "required": ["run_id", "timestamp", "source", "schema_version"]
     }
-  }
+  },
+  "required": ["status", "data", "error", "meta"]
 }

@@ -1,0 +1,9 @@
+{
+  "chat_primary": "qwen/qwen3-8b",
+  "chat_reason":  "qwen/qwen3-4b-thinking-2507",
+  "embedding":    "text-embedding-qwen3-embedding-0.6b",
+  "reranker":     "qwen.qwen3-reranker-0.6b",
+  "dims":         1024
+}
+
+

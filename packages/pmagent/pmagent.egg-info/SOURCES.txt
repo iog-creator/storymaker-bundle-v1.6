@@ -1,0 +1,7 @@
+setup.py
+pmagent.egg-info/PKG-INFO
+pmagent.egg-info/SOURCES.txt
+pmagent.egg-info/dependency_links.txt
+pmagent.egg-info/entry_points.txt
+pmagent.egg-info/requires.txt
+pmagent.egg-info/top_level.txt

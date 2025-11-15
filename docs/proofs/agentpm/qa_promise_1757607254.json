@@ -1,0 +1,11 @@
+{
+  "status": "ok",
+  "data": {
+    "ledger": []
+  },
+  "meta": {
+    "provider": "lm-studio",
+    "check": "promise-payoff",
+    "latency_ms": 0
+  }
+}

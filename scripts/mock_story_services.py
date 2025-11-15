@@ -28,7 +28,7 @@ app = FastAPI(title="Mock Story Services")
 class OutlineIn(BaseModel):
     premise: str
 
-@app.post("/narrative/outline")
+@app.post("/api/v1/narrative/outline")
 def narrative_outline(inp: OutlineIn):
     rid = "D" + "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
     outline = {

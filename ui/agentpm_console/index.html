@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentPM Console</title>
+    <style>
+        body { font-family: monospace; margin: 20px; background: #1a1a1a; color: #00ff00; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .controls { margin-bottom: 20px; }
+        .controls ul { list-style: none; padding: 0; display: flex; gap: 10px; }
+        .controls button { 
+            background: #333; color: #00ff00; border: 1px solid #555; 
+            padding: 8px 16px; cursor: pointer; font-family: monospace;
+        }
+        .controls button:hover { background: #555; }
+        .inspector { 
+            background: #000; border: 1px solid #333; padding: 15px; 
+            white-space: pre-wrap; font-size: 12px; max-height: 400px; overflow-y: auto;
+        }
+        .status { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .status.ok { background: #0a3a0a; border: 1px solid #0a6a0a; }
+        .status.error { background: #3a0a0a; border: 1px solid #6a0a0a; }
+        .help-panel { 
+            position: fixed; top: 0; right: -300px; width: 300px; height: 100vh; 
+            background: #222; border-left: 1px solid #555; padding: 20px; 
+            transition: right 0.3s; z-index: 1000; overflow-y: auto;
+        }
+        .help-panel.open { right: 0; }
+        .help-panel h3 { color: #00ff00; margin-top: 0; }
+        .help-panel p { margin: 10px 0; line-height: 1.4; }
+        .help-panel code { background: #333; padding: 2px 4px; border-radius: 2px; }
+        .validation-panel { 
+            background: #222; border: 1px solid #555; padding: 20px; 
+            margin-bottom: 20px; border-radius: 4px;
+        }
+        .validation-panel h3 { color: #00ff00; margin-top: 0; }
+        .validation-panel textarea { 
+            width: 100%; height: 150px; background: #000; color: #00ff00; 
+            border: 1px solid #555; padding: 10px; font-family: monospace; 
+            resize: vertical; margin-bottom: 10px;
+        }
+        .validation-controls { 
+            display: flex; gap: 10px; align-items: center; margin-bottom: 10px;
+        }
+        .validation-controls button { 
+            background: #333; color: #00ff00; border: 1px solid #555; 
+            padding: 8px 16px; cursor: pointer; font-family: monospace;
+        }
+        .validation-controls button:hover { background: #555; }
+        .badge { 
+            padding: 4px 8px; border-radius: 3px; font-size: 12px; 
+            font-weight: bold; text-transform: uppercase;
+        }
+        .badge.ready { background: #333; color: #888; }
+        .badge.valid { background: #0a3a0a; color: #00ff00; }
+        .badge.invalid { background: #3a0a0a; color: #ff6666; }
+        .validation-result { 
+            background: #000; border: 1px solid #333; padding: 10px; 
+            white-space: pre-wrap; font-size: 12px; max-height: 200px; 
+            overflow-y: auto; margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AgentPM Console</h1>
+            <p>UI-First Hardening Dashboard</p>
+        </div>
+        
+        <div class="controls">
+            <ul>
+                <li><button id="btn-health">Health</button></li>
+                <li><button id="btn-version">Version</button></li>
+                <li><button id="btn-proofs">Proofs</button></li>
+                <li><button id="btn-validate">Validate Envelope</button></li>
+                <li><button id="btn-help">Help (H)</button></li>
+            </ul>
+        </div>
+        
+        <div id="validation-panel" class="validation-panel" style="display: none;">
+            <h3>Envelope Validator</h3>
+            <textarea id="validation-input" placeholder="Paste JSON envelope here..."></textarea>
+            <div class="validation-controls">
+                <button id="btn-validate-ajv">Validate (AJV)</button>
+                <button id="btn-validate-server">Validate (Server Gate)</button>
+                <span id="validation-badge" class="badge">Ready</span>
+            </div>
+            <div id="validation-result" class="validation-result"></div>
+        </div>
+        
+        <div id="envelope-inspector" class="inspector">
+            Click a button to inspect API responses...
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+    
+    <div id="help-panel" class="help-panel">
+        <h3>AgentPM Console Help</h3>
+        <p><strong>Health:</strong> Check system health and component presence</p>
+        <p><strong>Version:</strong> Get API version and schema information</p>
+        <p><strong>Proofs:</strong> List available proof packs</p>
+        <p><strong>Keyboard:</strong> Press 'H' to toggle this help panel</p>
+        <p><strong>API:</strong> All endpoints return enveloped JSON responses</p>
+        <p><strong>Schema:</strong> Responses validated against envelope.schema.json</p>
+    </div>
+
+    <script src="https://unpkg.com/ajv@8.12.0/dist/ajv.bundle.js"></script>
+    <script>
+        let schema = null;
+        let ajv = new Ajv();
+        
+        fetch('/agentpm/schemas/envelope.schema.json').then(r => r.json()).then(s => { 
+            schema = s; 
+            ajv.addSchema(schema, 'envelope');
+        });
+        
+        function showStatus(message, isError = false) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${isError ? 'error' : 'ok'}`;
+            status.style.display = 'block';
+            setTimeout(() => status.style.display = 'none', 3000);
+        }
+        
+        function call(endpoint) {
+            const inspector = document.getElementById('envelope-inspector');
+            inspector.textContent = 'Loading...';
+            
+            fetch(endpoint)
+                .then(response => response.json())
+                .then(data => {
+                    inspector.textContent = JSON.stringify(data, null, 2);
+                    showStatus(`✓ ${endpoint} - ${data.status}`, data.status === 'error');
+                })
+                .catch(error => {
+                    inspector.textContent = `Error: ${error.message}`;
+                    showStatus(`✗ ${endpoint} - ${error.message}`, true);
+                });
+        }
+        
+        function toggleHelp() {
+            const panel = document.getElementById('help-panel');
+            panel.classList.toggle('open');
+        }
+        
+        function toggleValidation() {
+            const panel = document.getElementById('validation-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        function validateAJV() {
+            const input = document.getElementById('validation-input').value;
+            const badge = document.getElementById('validation-badge');
+            const result = document.getElementById('validation-result');
+            
+            try {
+                const data = JSON.parse(input);
+                if (schema) {
+                    const valid = ajv.validate(schema, data);
+                    if (valid) {
+                        badge.textContent = 'Valid';
+                        badge.className = 'badge valid';
+                        result.textContent = '✓ Valid envelope according to schema';
+                    } else {
+                        badge.textContent = 'Invalid';
+                        badge.className = 'badge invalid';
+                        result.textContent = '✗ Invalid: ' + JSON.stringify(ajv.errors, null, 2);
+                    }
+                } else {
+                    result.textContent = 'Schema not loaded yet...';
+                }
+            } catch (e) {
+                badge.textContent = 'Invalid';
+                badge.className = 'badge invalid';
+                result.textContent = '✗ Invalid JSON: ' + e.message;
+            }
+        }
+        
+        function validateServer() {
+            const input = document.getElementById('validation-input').value;
+            const badge = document.getElementById('validation-badge');
+            const result = document.getElementById('validation-result');
+            
+            try {
+                const data = JSON.parse(input);
+                fetch('/agentpm/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 'ok') {
+                        badge.textContent = 'Valid';
+                        badge.className = 'badge valid';
+                        result.textContent = '✓ Server validation passed\n' + JSON.stringify(response, null, 2);
+                    } else {
+                        badge.textContent = 'Invalid';
+                        badge.className = 'badge invalid';
+                        result.textContent = '✗ Server validation failed\n' + JSON.stringify(response, null, 2);
+                        if (response.meta && response.meta.run_id) {
+                            result.textContent += '\n\nArchived as run_id: ' + response.meta.run_id;
+                        }
+                    }
+                })
+                .catch(error => {
+                    badge.textContent = 'Error';
+                    badge.className = 'badge invalid';
+                    result.textContent = '✗ Server error: ' + error.message;
+                });
+            } catch (e) {
+                badge.textContent = 'Invalid';
+                badge.className = 'badge invalid';
+                result.textContent = '✗ Invalid JSON: ' + e.message;
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('btn-health').onclick = () => call('/agentpm/healthz');
+        document.getElementById('btn-version').onclick = () => call('/agentpm/version');
+        document.getElementById('btn-proofs').onclick = () => call('/agentpm/proofs');
+        document.getElementById('btn-validate').onclick = toggleValidation;
+        document.getElementById('btn-help').onclick = toggleHelp;
+        document.getElementById('btn-validate-ajv').onclick = validateAJV;
+        document.getElementById('btn-validate-server').onclick = validateServer;
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'h') {
+                toggleHelp();
+            }
+        });
+    </script>
+</body>
+</html>

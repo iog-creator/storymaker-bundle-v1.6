@@ -1,0 +1,5 @@
+sha256(invalid-envelope.json): 743c15bc0010fe5332473ae8308568f59543eb9ac4bf068e5a77c5d11d5cf52c
+run_id: 20250913T023954Z-bc5721
+timestamp: 2025-09-13T02:39:54.643898+00:00
+violations: 1
+violation_details: Additional property 'extra' not allowed

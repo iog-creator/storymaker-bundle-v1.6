@@ -1,0 +1,15 @@
+{
+  "status": "ok",
+  "data": {
+    "used": 1,
+    "cap": 10,
+    "notes": [
+      "mysterious stranger"
+    ]
+  },
+  "meta": {
+    "provider": "lm-studio",
+    "check": "trope-budget",
+    "latency_ms": 0
+  }
+}

@@ -1,2 +1,4 @@
 - Prose: avoid passive; clichés ≤2/1k.
 - Python: ruff+black+mypy.
+- Proofs: must be canonical JSON with sha256, envelope v1.2 only.
+- Guards: all bash scripts must `set -euo pipefail` and fail-closed.

@@ -1,0 +1,24 @@
+{
+  "name": "storymaker-live-dashboard",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.11.0",
+    "chokidar": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "eventsource": "^4.0.0",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "undici": "^6.19.8"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "http-server": "^14.1.1"
+  },
+  "scripts": {
+    "live": "node tools/live_dashboard.js",
+    "server": "http-server . -p 5173 -c-1",
+    "test": "playwright test"
+  }
+}

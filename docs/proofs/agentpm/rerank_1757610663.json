@@ -1,0 +1,24 @@
+{
+  "status": "ok",
+  "data": {
+    "query": "test query",
+    "top_k": [
+      {
+        "id": null,
+        "text": "candidate 2",
+        "score": 0.5275120299786641
+      },
+      {
+        "id": null,
+        "text": "candidate 1",
+        "score": 0.5260755022333793
+      }
+    ]
+  },
+  "meta": {
+    "provider": "lm-studio",
+    "embedding_model": "text-embedding-qwen3-embedding-0.6b",
+    "embedding_dims": 1024,
+    "latency_ms": 31
+  }
+}

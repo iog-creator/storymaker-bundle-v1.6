@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "data": {
+    "used": 0,
+    "cap": 10,
+    "notes": []
+  },
+  "meta": {
+    "provider": "lm-studio",
+    "check": "trope-budget",
+    "latency_ms": 0
+  }
+}

@@ -24,11 +24,15 @@ make start
 
 # Check status
 make status
+
+# Launch live monitoring dashboard
+make ui.live
 ```
 
 ### **Access StoryMaker**
 - **Web UI**: http://localhost:3000
 - **API**: http://localhost:8000-8004
+- **Live Dashboard**: `make ui.live` (real-time monitoring)
 - **Verification**: `make verify-all`
 
 ## Troubleshooting
@@ -51,6 +55,11 @@ make status
 ### "Services won't start"
 - Run: `make restart`
 - Check logs: `docker compose logs`
+
+### "Dashboard won't start"
+- Install Node.js: `curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash - && sudo apt-get install -y nodejs`
+- Run: `make ui.install` to install dependencies
+- Check: `node --version` and `npm --version`
 
 ## What Each Service Does
 

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentPM UI</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .badge { padding: 4px 8px; border-radius: 4px; color: white; }
+        .badge.green { background-color: #28a745; }
+        .badge.red { background-color: #dc3545; }
+        #help-panel { display: none; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; }
+        #envelope-inspector { font-family: monospace; background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; }
+        #ajv-badge { display: inline-block; }
+    </style>
+</head>
+<body>
+    <h1>AgentPM UI</h1>
+    
+    <div id="help-panel">
+        <h3>Help & Guidance</h3>
+        <p>This is the help panel with guidance information.</p>
+    </div>
+    
+    <div>
+        <h3>Envelope Inspector</h3>
+        <div id="envelope-inspector">{"status":"ok","data":{"test":"sample"},"meta":{"run_id":"test-123"}}</div>
+        <span id="ajv-badge" class="badge green">Valid</span>
+    </div>
+    
+    <script>
+        // Basic keyboard handling
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'H') {
+                const panel = document.getElementById('help-panel');
+                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            }
+            if (e.key === 'E') {
+                // Load sample envelope
+                document.getElementById('envelope-inspector').textContent = 
+                    JSON.stringify({"status":"ok","data":{"sample":"loaded"},"meta":{"run_id":"sample-456"}}, null, 2);
+            }
+        });
+        
+        // AJV validation simulation
+        function validateEnvelope() {
+            const envText = document.getElementById('envelope-inspector').textContent;
+            try {
+                const env = JSON.parse(envText);
+                const isValid = env.status === 'ok' && env.data && env.meta;
+                const badge = document.getElementById('ajv-badge');
+                badge.className = isValid ? 'badge green' : 'badge red';
+                badge.textContent = isValid ? 'Valid' : 'Invalid';
+            } catch (e) {
+                const badge = document.getElementById('ajv-badge');
+                badge.className = 'badge red';
+                badge.textContent = 'Invalid JSON';
+            }
+        }
+        
+        // Initial validation
+        validateEnvelope();
+        
+        // Re-validate on input
+        document.getElementById('envelope-inspector').addEventListener('input', validateEnvelope);
+    </script>
+</body>
+</html>

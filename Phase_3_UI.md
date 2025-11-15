@@ -407,6 +407,19 @@ import NarrativePanel from "./components/NarrativePanel";
 </div>
 ```
 
+## Panels — Contract Checks
+
+- **Narrative Panel**
+  - Requires envelope v1.2 with `meta.provider:"groq"` and `model:"llama-3.3-70b-versatile"`.
+  - Renders beats (≥6); shows `X-Request-Id` for traceability.
+
+- **Retrieval Panel**
+  - `/api/v1/search/embed` → displays `embedding_dims=1024` badge.
+  - `/api/v1/search/rerank` → verifies descending scores; flags anomalies.
+
+- **Proof Meter**
+  - Reads from `/api/proofs/count`; clicking opens the latest proof.
+
 ### Acceptance
 
 * Submit → returns `{status:"ok", data:{...}, meta:{provider:"groq", model:"llama-3.3-70b-versatile"}}` (UI shows full envelope).

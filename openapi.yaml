@@ -1,0 +1,56 @@
+openapi: 3.1.0
+info:
+  title: AgentPM Orchestrator
+  version: 0.0.0-pr002
+  description: UI-First Hardening API
+paths:
+  /agentpm/healthz:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+  /agentpm/version:
+    get:
+      summary: Version
+      responses:
+        '200':
+          description: Version info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+  /agentpm/proofs:
+    get:
+      summary: List proofs
+      responses:
+        '200':
+          description: Proofs list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+  /agentpm/validate:
+    post:
+      summary: Validate envelope
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+components:
+  schemas:
+    Envelope:
+      $ref: './docs/schemas/envelope.schema.json'

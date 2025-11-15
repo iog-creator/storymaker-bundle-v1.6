@@ -1,6 +1,7 @@
 services/orchestration/generated/
 # Environment & local overrides
 .env
+.env.local
 *.env
 !.env.example
 

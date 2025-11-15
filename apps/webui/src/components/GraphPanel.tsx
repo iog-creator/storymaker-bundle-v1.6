@@ -38,7 +38,7 @@ export default function GraphPanel({ worldcore }: { worldcore: string }) {
   React.useEffect(() => {
     if (!graph || !ref.current) return;
     const sim = d3.forceSimulation<Node>(graph.nodes)
-      .force("link", d3.forceLink<Node, any>(graph.edges as any).id(d=>d.id).distance(100).strength(0.25))
+      .force("link", d3.forceLink<Node, any>(graph.edges as any).id((d: any) => d.id).distance(100).strength(0.25))
       .force("charge", d3.forceManyBody().strength(-140))
       .force("center", d3.forceCenter(400/2, 320/2))
       .stop();

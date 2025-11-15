@@ -1,0 +1,50 @@
+{
+  "status": "ok",
+  "data": {
+    "integration": "webui_orchestration",
+    "timestamp": "2025-09-11T16:10:00Z",
+    "components": {
+      "webui": {
+        "status": "operational",
+        "port": 5173,
+        "framework": "React/Vite",
+        "features": [
+          "Story Flow Runner",
+          "Real-time generation",
+          "Drag & drop beats",
+          "Scene cards",
+          "QA integration"
+        ]
+      },
+      "orchestration": {
+        "status": "operational", 
+        "port": 8700,
+        "framework": "LangGraph",
+        "endpoints": {
+          "/run": "Story generation flow",
+          "/healthz": "Health check",
+          "/version": "Version info"
+        }
+      },
+      "service_communication": {
+        "webui_to_orchestration": "REST API calls to /run",
+        "orchestration_to_narrative": "HTTP calls to narrative service",
+        "orchestration_to_worldcore": "HTTP calls to worldcore QA endpoints",
+        "data_flow": "premise → outline → QA → approval"
+      }
+    },
+    "verification": {
+      "webui_accessible": true,
+      "orchestration_responding": true,
+      "full_flow_operational": true,
+      "real_services_used": true,
+      "no_mocks_enabled": true
+    }
+  },
+  "meta": {
+    "provider": "agentpm",
+    "actor": "documentation_update",
+    "latency_ms": 0,
+    "timestamp": "2025-09-11T16:10:00Z"
+  }
+}

@@ -13,11 +13,16 @@ If the system drifts or fails, **rebuilding from this plan must reproduce the in
 
 ## 1. Canonical Architecture (Locked)
 
-### AI Roles
-- **Groq 70B (`llama-3.3-70b-versatile`)** → **Creative generation ONLY**  
-  (Prose, dialogue, rewrites, narrative scenes)
-- **LM Studio (local Qwen models)** → **Everything else**  
-  (Embeddings [1024-dim], reranking, QA, structure, planning)
+## AI Roles & Providers (SSOT v1.2)
+
+- **Creative (Narrative/Prose)** → **Groq**
+  - Model: `llama-3.3-70b-versatile` (locked)
+- **Verifier / Planner (AgentPM chat)** → **LM Studio**
+  - Primary Chat: `qwen/qwen3-8b` (locked)
+  - Reasoning Chat: `qwen/qwen3-4b-thinking-2507` (locked)
+- **Retrieval**
+  - Embeddings: `text-embedding-qwen3-embedding-0.6b` (locked, `dims=1024`)
+  - Reranker: `qwen.qwen3-reranker-0.6b` (locked)
 
 ### Services
 - **WorldCore**: Canon, propose/approve, entity graph  
@@ -31,12 +36,38 @@ If the system drifts or fails, **rebuilding from this plan must reproduce the in
 - **Redis 7** (caching, ephemeral state)  
 - **MinIO** (S3-compatible storage)  
 
-### Guardrails
-- **Envelope System v1.1**: All responses = `{status, data, error, meta}`  
-- **Proof Capture**: Every operation logs JSON envelope in `docs/proofs/`  
-- **Quality Gates**: Preflight, commit hygiene, SSOT presence, verify-all  
-- **Mocks**: ❌ Disabled (fail-closed; `MOCK_LMS=0` enforced)  
-- **HF References**: ❌ Removed; Groq API only  
+## API Contract
+
+- All public endpoints are under **`/api/v1/*`**.
+- Envelope **v1.2** is mandatory for **every** success/error:
+  ```json
+  { "status": "ok"|"error",
+    "data": { ... } | null,
+    "error": { "code": "...", "message": "...", "details": {...} } | null,
+    "meta": { "api_version":"v1.2","request_id":"uuid","provider":"groq|lm-studio|system",
+              "model":"string","role":"creative|qa|retrieval|system","latency_ms":123,"created_at":"ISO-8601" },
+    "proof": { "id":"uuid","path":"docs/proofs/agentpm/YYYY/MM/DD/ID.json","written":true,
+               "sha256":"<hash of canonicalized response>" }
+  }
+```
+
+## Guardrails
+
+* **Provider Split**
+
+  * Narrative → Groq only; QA/Retrieval → LM Studio only. Crossing providers is a **hard failure**.
+* **Model Lock**
+
+  * Exact IDs above are **required**; validated in CI.
+* **Retrieval Invariants**
+
+  * Embeddings must return `dims=1024`; reranker results must be sorted descending.
+* **Proof Discipline**
+
+  * Proof file must be a canonicalized byte-for-byte copy of the API response; guard compares `sha256`.
+* **Fail-Closed Readiness**
+
+  * `/api/v1/health` and `/api/v1/healthz` return **503** until Groq + LM Studio warmups succeed and DB is reachable.  
 
 ---
 
@@ -77,28 +108,19 @@ If the system drifts or fails, **rebuilding from this plan must reproduce the in
 
 ---
 
-## 3. Acceptance Criteria
+## Acceptance (Green Criteria)
 
-### Global
-- DB fail-fast: `/health` returns ok only if DB reachable  
-- Envelope-only responses, no raw output  
-- Proofs in `docs/proofs/agentpm/` for every verification step  
-- No mocks, no HF references  
-
-### Groq
-- Service refuses to start without `GROQ_API_KEY`  
-- Requests fail if model is not 70B (`llama-3.3-70b-versatile`)  
-- Narrative responses always include `"provider":"groq"`  
-
-### LM Studio
-- Embeddings = 1024-dim Qwen vectors  
-- Reranking functional with chat reranker  
-- `make verify-lms` confirms connection to `http://127.0.0.1:1234/v1`  
-
-### AgentPM
-- `make verify-all` passes: config-check, preflight, live, narrative proof  
-- Preflight gates: commit hygiene, SSOT presence, envelope validation  
-- Proof envelopes show both Groq + LM Studio evidence  
+* Narrative outline returns envelope v1.2 with `meta.provider:"groq"` and model `llama-3.3-70b-versatile`.
+* QA and Retrieval endpoints return envelope v1.2 with `meta.provider:"lm-studio"`.
+* `/api/v1/search/embed` returns `meta.embedding_dims == 1024`.
+* Proofs saved only under `docs/proofs/agentpm/...` and `proof.sha256` matches API response.
+* All guards pass under `make verify-all`, including:
+  - env_config, no-mocks, provider-split, proofs-path, SSOT presence, rules presence
+  - model-lock, retrieval-smoke, proof-integrity
+  - rerank-monotonic (scores descending)
+  - soak-and-concurrency (≥100 sequential + concurrent calls)
+  - provider-isolation (fail-closed if provider misused)
+  - fresh-shell-env (no manual sourcing required)  
 
 ---
 
@@ -186,7 +208,11 @@ If bootstrap fails, the system provides clear error messages and recovery steps:
 - Keep Groq = creative only; LM Studio = embeddings/rerank  
 - Preserve SSOT: archive old docs, but MASTER_PLAN must always exist  
 - Proofs are mandatory for audit and debugging  
-- String audits should run in CI to prevent HF/mocks drift  
+- String audits should run in CI to prevent HF/mocks drift
+- **API Key Protection**: Never commit real API keys to git; use .env.local for secrets
+- **Environment Loading**: All verification scripts must source .env before running
+- **AgentPM Verification**: Always use `make verify-all` as source of truth, never assume
+- **Git Clean Safety**: API keys must be backed up outside repository before cleanup operations  
 
 ---
 

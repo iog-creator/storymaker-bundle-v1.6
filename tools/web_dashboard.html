@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryMaker Live Dashboard</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        /* Viewport layout */
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;           /* prevent double scrollbars */
+            background: #0a0a0a;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            color: #e5e5e5;
+            line-height: 1.2;
+            font-size: 11px;
+        }
+
+        /* App grid: tiles | splitter | guidance */
+        .app {
+            display: grid;
+            grid-template-columns: 1fr 6px clamp(280px, 26vw, 420px); /* middle column = splitter */
+            grid-template-rows: 1fr 36px;                              /* keybar at bottom */
+            grid-template-areas:
+                "tiles splitter guidance"
+                "keybar keybar keybar";
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Tiles area scrolls */
+        .tiles-area {
+            grid-area: tiles;
+            overflow: auto;             /* ← lets you reach the bottom */
+            padding: 8px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            min-width: 0;
+        }
+        .tile {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 6px;
+            min-height: 60px;
+            position: relative;
+        }
+        .tile.ok { border-color: #22c55e; }
+        .tile.warn { border-color: #f59e0b; }
+        .tile.fail { border-color: #ef4444; }
+        .tile h3 {
+            margin: 0 0 2px 0;
+            font-size: 9px;
+            color: #a3a3a3;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .tile-content {
+            font-size: 9px;
+            white-space: pre-wrap;
+            line-height: 1.0;
+        }
+        .events-pane {
+            grid-column: 1 / -1;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            padding: 6px;
+            height: 80px;
+            overflow-y: auto;
+            font-size: 9px;
+            font-family: monospace;
+            margin-top: 4px;
+        }
+        .status-indicator {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+        .status-indicator.warn { background: #f59e0b; }
+        .status-indicator.fail { background: #ef4444; }
+        .blink { animation: blink 1s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.3; } }
+        .progress-bar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: #333;
+        }
+        .progress-fill {
+            width: 100%;
+            background: #22c55e;
+            height: 30%;
+        }
+        
+        /* Toasts */
+        .toasts {
+            position: fixed; 
+            right: 16px; 
+            bottom: 16px; 
+            z-index: 9999;
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px;
+        }
+        .toast {
+            padding: 8px 12px; 
+            border-radius: 8px; 
+            background: #222; 
+            color: #eee;
+            box-shadow: 0 6px 16px rgba(0,0,0,.35); 
+            opacity: .98; 
+            transform: translateY(0);
+            transition: opacity .35s ease, transform .35s ease;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+            font-size: 12px;
+        }
+        .toast.ok   { border-left: 4px solid #50fa7b; }
+        .toast.warn { border-left: 4px solid #f1fa8c; }
+        .toast.err  { border-left: 4px solid #ff5555; }
+        .toast.out  { opacity: 0; transform: translateY(6px); }
+
+        /* Modal */
+        .modal { 
+            position: fixed; 
+            inset: 0; 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            background: rgba(0,0,0,.45); 
+            z-index: 9998; 
+        }
+        .modal.open { display: flex; }
+        .modal-card { 
+            width: min(900px, 92vw); 
+            max-height: 82vh; 
+            background:#111; 
+            color:#eaeaea; 
+            border:1px solid #333; 
+            border-radius:12px; 
+            overflow:hidden; 
+        }
+        .modal-header { 
+            display:flex; 
+            justify-content:space-between; 
+            align-items:center; 
+            padding:10px 12px; 
+            border-bottom:1px solid #333; 
+            background:#0c0c0c; 
+        }
+        .modal-title { 
+            font-weight:600; 
+            font-size:14px; 
+        }
+        #modal-close { 
+            background:transparent; 
+            border:none; 
+            color:#bbb; 
+            font-size:20px; 
+            line-height:1; 
+            cursor:pointer; 
+        }
+        .modal-body { 
+            margin:0; 
+            padding:12px; 
+            overflow:auto; 
+            font-size:12px; 
+        }
+
+        /* Guidance pane scrolls internally */
+        .guidance {
+            grid-area: guidance;
+            overflow: hidden;           /* container */
+            display: flex;
+            flex-direction: column;
+            min-width: 280px;
+            max-width: 720px;
+            border-left: 1px solid #222;
+            background:#0e0e0e; 
+            border-radius:10px;
+            gap:8px; 
+            padding:10px;
+        }
+        .guidance .guidance-body,
+        .guidance .notif-list {
+            overflow: auto;             /* inner scroll, not the page */
+        }
+        .guidance-header { 
+            display:flex; 
+            justify-content:space-between; 
+            align-items:center; 
+            font-weight:600; 
+            font-size:11px;
+        }
+        .guidance-header button { 
+            background:#1a1a1a; 
+            border:1px solid #333; 
+            color:#bbb; 
+            border-radius:6px; 
+            padding:2px 6px; 
+            cursor:pointer; 
+        }
+        .guidance-body { 
+            flex: 1; 
+            overflow:auto; 
+            font-size:10px; 
+            line-height:1.2; 
+        }
+        .guidance-empty { 
+            color:#888; 
+        }
+        .guidance-sep { 
+            height:1px; 
+            background:#222; 
+            margin:2px 0 4px; 
+        }
+        .notif-list { 
+            flex: 1; 
+            overflow:auto; 
+            font-size:10px; 
+        }
+        .notif-item { 
+            padding:6px 8px; 
+            border:1px solid #2a2a2a; 
+            border-radius:8px; 
+            margin-bottom:6px; 
+            background:#121212; 
+        }
+        .notif-item .ts { 
+            color:#999; 
+            font-size:11px; 
+        }
+        .notif-item.ok   { border-left:4px solid #50fa7b; }
+        .notif-item.warn { border-left:4px solid #f1fa8c; }
+        .notif-item.err  { border-left:4px solid #ff5555; }
+
+        /* Splitter */
+        .splitter {
+            grid-area: splitter;
+            cursor: col-resize;
+            background: linear-gradient(to right, #151515, #222, #151515);
+        }
+        .splitter:hover { background: #2a2a2a; }
+
+        /* Keybar sticks to bottom always */
+        .keybar {
+            grid-area: keybar;
+            height: 28px;
+            display:flex; align-items:center; padding:0 8px; gap:8px;
+            background:#0c0c0c; border-top:1px solid #222; color:#cfcfcf; font-size:10px;
+        }
+        
+        /* Compact legend overlay */
+        .legend-overlay {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 9px;
+            color: #ccc;
+            z-index: 1000;
+            max-width: 200px;
+            display: none;
+        }
+        .legend-overlay.show { display: block; }
+
+        /* Guidance recommendations */
+        .recs {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .recs li {
+            margin-bottom: 8px;
+            padding: 6px 8px;
+            background: #1a1a1a;
+            border-radius: 6px;
+            border-left: 3px solid #333;
+        }
+        .recs button {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #ccc;
+            border-radius: 4px;
+            padding: 2px 6px;
+            margin-left: 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .recs button:hover {
+            background: #3a3a3a;
+        }
+        .row-actions {
+            display: flex;
+            gap: 4px;
+            margin-top: 4px;
+            justify-content: flex-end;
+        }
+        .row-actions button {
+            font-size: 10px;
+            padding: 2px 4px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #aaa;
+        }
+        .row-actions button:hover {
+            background: #2a2a2a;
+            color: #ccc;
+        }
+
+        /* Responsive: stack on narrow screens */
+        @media (max-width: 1200px) {
+            .app {
+                grid-template-columns: 1fr;                  /* stack */
+                grid-template-rows: 1fr auto 28px;
+                grid-template-areas:
+                    "tiles"
+                    "guidance"
+                    "keybar";
+            }
+            .splitter { display:none; }
+            .guidance { border-left:none; border-top:1px solid #222; max-height: 40vh; }
+        }
+        
+        /* Mobile: 2-column tiles */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .tile { min-height: 50px; padding: 4px; }
+            .tile h3 { font-size: 8px; }
+            .tile-content { font-size: 8px; }
+        }
+        
+        /* Very small: 1-column tiles */
+        @media (max-width: 480px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Compact mode reduces padding/margins in tiles */
+        .compact .tiles-area { padding: 4px; }
+        .compact .tile { margin: 4px !important; padding: 6px !important; }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-root" class="app">
+        <main id="tiles-pane" class="tiles-area">
+            <div class="dashboard">
+            <div id="tile-lm" class="tile">
+                <h3>LM Studio</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+            </div>
+            <div id="tile-groq" class="tile">
+                <h3>Groq (Creative)</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+            </div>
+            <div id="tile-agentpm" class="tile">
+                <h3>AgentPM</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+            </div>
+            <div id="tile-storymaker" class="tile">
+                <h3>StoryMaker</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+            </div>
+            <div id="tile-rules" class="tile">
+                <h3>SSOT Rules (.mdc)</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+            </div>
+            <div id="tile-proofs" class="tile">
+                <h3>Envelopes & Proofs</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+            </div>
+            <div id="tile-autosync" class="tile">
+                <h3>Docs Autosync</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+            </div>
+            <div id="tile-guards" class="tile">
+                <h3>Rerank & QA Guards</h3>
+                <div class="tile-content">Loading...</div>
+                <div class="status-indicator"></div>
+            </div>
+            <div id="pane-events" class="events-pane">
+                <div>Events Log - Press E, P, L, G for actions</div>
+            </div>
+            </div>
+        </main>
+
+        <div id="splitter" class="splitter" title="Drag to resize"></div>
+
+        <!-- Persistent Guidance -->
+        <aside id="guidance" class="guidance">
+            <div class="guidance-header">
+                <span>Guidance & Next Actions</span>
+                <button id="guidance-refresh" title="Refresh">↻</button>
+            </div>
+            <div id="guidance-body" class="guidance-body">
+                <div class="guidance-empty">Waiting for status…</div>
+            </div>
+
+            <div class="guidance-sep"></div>
+
+            <div class="guidance-header">
+                <span>Notifications (Persisted)</span>
+                <button id="notif-clear" title="Clear">✕</button>
+            </div>
+            <div id="notif-list" class="notif-list"></div>
+        </aside>
+    </div>
+
+    <!-- Toasts -->
+    <div id="toasts" class="toasts"></div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Details</div>
+                <button id="modal-close">×</button>
+            </div>
+            <pre id="modal-body" class="modal-body"></pre>
+        </div>
+    </div>
+
+
+    <!-- Legend / Help -->
+    <div id="legend-modal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">Legend & Keymap</div>
+                <button id="legend-close">×</button>
+            </div>
+            <pre class="modal-body">
+Tiles:
+ • LM Studio      → chat + embed models; green when both loaded
+ • Groq (Creative)→ GROQ_MODEL available with valid key
+ • SSOT Rules     → count, Δ since last emit, last emit sha/age
+ • Docs Autosync  → SSOT vs repo; drift:n shows un-emitted SSOT changes
+ • Proofs         → count, latest proof file, age, ms, used
+ • Guards         → first failing guard & first failing proof summary
+
+Keymap:
+ • E  Emit rules (autosync SSOT)
+ • P  Open latest proof (modal)
+ • L  LM Studio checklist
+ • G  Groq checklist
+ • T  Toggle guidance panel
+ • C  Compact mode (denser tiles)
+ • H  This legend
+ • q  Quit
+            </pre>
+        </div>
+    </div>
+
+    <!-- Compact legend overlay -->
+    <div id="legend-overlay" class="legend-overlay">
+        <div><strong>Keys:</strong></div>
+        <div>E=Emit  P=Proof  L=LM  G=Groq</div>
+        <div>T=Toggle  C=Compact  H=Help  q=Quit</div>
+        <div><strong>Status:</strong></div>
+        <div>🟢 OK  🟡 Warn  🔴 Fail</div>
+        <div><strong>Actions:</strong></div>
+        <div>Click tiles for details</div>
+    </div>
+
+    <!-- Sticky footer keys (always visible) -->
+    <footer class="keybar">
+        Keys: E=P P=Proof L=LM G=Groq T=Toggle C=Compact H=Help q=Quit
+    </footer>
+
+    <script>
+        const API_BASE = 'http://localhost:8700';
+        let lastRulesCount = 0;
+
+        // Event logging
+        function logEvent(line) {
+            const pane = document.getElementById('pane-events');
+            pane.textContent += `\n${line}`;
+            pane.scrollTop = pane.scrollHeight;
+        }
+
+        // -------- Toasts --------
+        const toasts = document.getElementById("toasts");
+        function toast(msg, kind="info", ttl=3500){
+            const el = document.createElement("div");
+            el.className = `toast ${kind}`;
+            el.textContent = msg;
+            toasts.appendChild(el);
+            setTimeout(()=>{ el.classList.add("out"); setTimeout(()=>el.remove(), 400); }, ttl);
+        }
+
+        // ---------------- Persistent Notifications ----------------
+        const notifListEl = document.getElementById("notif-list");
+        const NOTIF_KEY = "dashboard.persist.notifs.v1";
+        function loadNotifs(){ try { return JSON.parse(localStorage.getItem(NOTIF_KEY)||"[]"); } catch{ return []; } }
+        function saveNotifs(list){ localStorage.setItem(NOTIF_KEY, JSON.stringify(list.slice(-200))); }
+        function addNotif(kind, msg){
+            const list = loadNotifs();
+            const last = list[list.length-1];
+            if (last && last.kind===kind && last.msg===msg) return; // collapse duplicates
+            list.push({ kind, msg, ts: new Date().toISOString() });
+            saveNotifs(list); 
+            renderNotifs();
+        }
+        function renderNotifs(){
+            const list = loadNotifs().slice().reverse();
+            notifListEl.innerHTML = list.map(n => (
+                `<div class="notif-item ${n.kind}">
+                   <div>${escapeHtml(n.msg)}</div>
+                   <div class="ts">${new Date(n.ts).toLocaleString()}</div>
+                 </div>`
+            )).join("");
+        }
+        document.getElementById("notif-clear").onclick = () => { saveNotifs([]); renderNotifs(); };
+
+        // -------- Modal --------
+        const modal = document.getElementById("modal");
+        const modalBody = document.getElementById("modal-body");
+        document.getElementById("modal-close").onclick = ()=> modal.classList.remove("open");
+        function showModal(text, title="Details"){
+            modal.querySelector(".modal-title").textContent = title;
+            modalBody.textContent = text;
+            modal.classList.add("open");
+        }
+        function showJsonModal(obj, title="Proof"){
+            const pretty = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
+            showModal(pretty, title);
+        }
+
+        function escapeHtml(text) {
+            return String(text).replace(/[&<>"']/g, (m) => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m]));
+        }
+
+        // API helpers
+        async function fetchJson(url) {
+            try {
+                const r = await fetch(url);
+                if (!r.ok) return { ok: false, error: `HTTP ${r.status}` };
+                return await r.json();
+            } catch (e) {
+                return { ok: false, error: e.message };
+            }
+        }
+
+        // Tile renderers
+        async function renderLm() {
+            const el = document.getElementById('tile-lm');
+            const j = await fetchJson(`${API_BASE}/api/lm/models?cb=${Date.now()}`);
+            if (!j.ok) {
+                el.className = 'tile fail';
+                el.querySelector('.tile-content').textContent = `ping ✖\n• ${j.error || "LM query failed"}`;
+                el.querySelector('.status-indicator').className = 'status-indicator fail';
+            } else {
+                el.className = 'tile ok';
+                el.querySelector('.status-indicator').className = 'status-indicator';
+                const chat = j.chat ? j.chat : "—";
+                const embed = j.embed ? j.embed : "—";
+                const missingMsg = (j.reason && (chat === "—" || embed === "—")) ? j.reason : "";
+                const msg = `ping ✔ • model:${chat} • embed:${embed}${missingMsg ? ` • ⚠ ${missingMsg}` : ""}`;
+                el.querySelector('.tile-content').textContent = msg;
+            }
+        }
+
+        async function renderGroq() {
+            const el = document.getElementById('tile-groq');
+            const j = await fetchJson(`${API_BASE}/api/groq/model?cb=${Date.now()}`);
+            if (j.missing?.length) {
+                el.className = 'tile fail';
+                el.querySelector('.tile-content').textContent = `ping ✖ missing env:\n• ${j.missing.join(", ")}`;
+                el.querySelector('.status-indicator').className = 'status-indicator fail';
+            } else if (!j.ok) {
+                el.className = 'tile fail';
+                el.querySelector('.tile-content').textContent = `ping ✖\n• ${j.error || `model ${j.model} not available`}`;
+                el.querySelector('.status-indicator').className = 'status-indicator fail';
+            } else {
+                el.className = 'tile ok';
+                el.querySelector('.status-indicator').className = 'status-indicator';
+                el.querySelector('.tile-content').textContent = `ping ✔ • model:${j.model} • ⬤`;
+            }
+        }
+
+        async function renderAgentPM() {
+            const el = document.getElementById('tile-agentpm');
+            const j = await fetchJson(`${API_BASE}/api/ssot/status?cb=${Date.now()}`);
+            if (!j.ok) {
+                el.className = 'tile fail';
+                el.querySelector('.tile-content').textContent = `ssot status failed\n• ${j.error || "unknown error"}`;
+                el.querySelector('.status-indicator').className = 'status-indicator fail';
+            } else {
+                el.className = 'tile ok';
+                el.querySelector('.status-indicator').className = 'status-indicator';
+                el.querySelector('.tile-content').textContent = `branch: main\nchanges: ${j.drift || 0}\nlast: ${j.ssotAge}\ncommit: ${j.ssotSha}`;
+            }
+        }
+
+        async function renderStoryMaker() {
+            const el = document.getElementById('tile-storymaker');
+            // This would need git status info - for now show basic info
+            el.className = 'tile ok';
+            el.querySelector('.status-indicator').className = 'status-indicator';
+            el.querySelector('.tile-content').textContent = `branch: main\nchanges: 50\nlast: 22h ago\ncommit: b4a0673`;
+        }
+
+        async function renderRules() {
+            const el = document.getElementById('tile-rules');
+            const j = await fetchJson(`${API_BASE}/api/ssot/status?cb=${Date.now()}`);
+            if (!j.ok) {
+                el.className = 'tile fail';
+                el.querySelector('.tile-content').textContent = `ssot status failed\n• ${j.error || "unknown error"}`;
+                el.querySelector('.status-indicator').className = 'status-indicator fail';
+            } else {
+                const delta = j.rules - (lastRulesCount || 0);
+                const d = j.delta ? ` (Δ+${j.delta})` : (delta ? ` (Δ${delta > 0 ? '+' : ''}${delta})` : '');
+                el.className = j.rules > 0 ? 'tile ok' : 'tile warn';
+                el.querySelector('.status-indicator').className = j.rules > 0 ? 'status-indicator' : 'status-indicator warn';
+                const staleWarn = j.stale ? " • stale" : "";
+                el.querySelector('.tile-content').textContent = `rules:${j.rules}${d} • last emit:${j.ssotSha} • ${j.ssotAge}${staleWarn} • ⬤`;
+                if (j.rules === 0) el.querySelector('.tile-content').textContent += "\nrun: make rules.emit";
+                lastRulesCount = j.rules;
+            }
+        }
+
+        async function renderProofs() {
+            const el = document.getElementById('tile-proofs');
+            const j = await fetchJson(`${API_BASE}/api/proofs/summary?cb=${Date.now()}`);
+            if (!j.ok) {
+                el.className = 'tile fail';
+                el.querySelector('.tile-content').textContent = `proofs summary failed\n• ${j.error || "unknown error"}`;
+                el.querySelector('.status-indicator').className = 'status-indicator fail';
+            } else if (j.count === 0) {
+                el.className = 'tile warn';
+                el.querySelector('.tile-content').textContent = 'no proofs yet';
+                el.querySelector('.status-indicator').className = 'status-indicator warn';
+            } else {
+                el.className = 'tile ok';
+                el.querySelector('.status-indicator').className = 'status-indicator';
+                const p = j.latest?.json || {};
+                const ms = Number.isFinite(p.latency_ms) ? ` • ms:${p.latency_ms}` : "";
+                const used = Number.isFinite(p.used) ? ` • used:${p.used}` : "";
+                const why = p.reason || p.analysis ? ` • ${String(p.reason || p.analysis).slice(0, 60)}` : "";
+                el.querySelector('.tile-content').textContent = `proofs:${j.count} • latest:${j.latest?.file || '—'} • ${j.latest?.age || '—'}${ms}${used}${why} • ⬤`;
+            }
+        }
+
+        async function renderAutosync() {
+            const el = document.getElementById('tile-autosync');
+            const j = await fetchJson(`${API_BASE}/api/ssot/status?cb=${Date.now()}`);
+            if (!j.ok) {
+                el.className = 'tile fail';
+                el.querySelector('.tile-content').textContent = `ssot status failed\n• ${j.error || "unknown error"}`;
+                el.querySelector('.status-indicator').className = 'status-indicator fail';
+            } else {
+                const drift = j.drift ? ` • drift:${j.drift}` : "";
+                const status = j.repoSha === j.ssotSha && !j.drift ? "synced ✔" : "✖ out of date";
+                el.className = status.includes("✔") ? 'tile ok' : 'tile fail';
+                el.querySelector('.status-indicator').className = status.includes("✔") ? 'status-indicator' : 'status-indicator fail';
+                el.querySelector('.tile-content').textContent = `${status} • SSOT:${j.ssotSha}/${j.ssotAge} • repo:${j.repoSha}/${j.repoAge}${drift} • ⬤`;
+            }
+        }
+
+        async function renderGuards() {
+            const el = document.getElementById('tile-guards');
+            // This would need to be implemented with actual guard execution
+            // For now, show the error from terminal dashboard
+            el.className = 'tile fail';
+            el.querySelector('.status-indicator').className = 'status-indicator fail';
+            el.querySelector('.tile-content').textContent = '✖ guard failed\nmake[1]: *** [Makefile:354:\nguards.qa.latency] Error 1';
+        }
+
+        // Action functions
+        async function actionEmitRules() {
+            logEvent("[ui] emit rules…");
+            const r = await fetch(`${API_BASE}/api/actions/rules.emit`, { method: "POST" });
+            const j = await r.json();
+            if (j.ok) {
+                logEvent("[ok] rules.emit");
+                toast("Rules emitted", "ok");
+                renderAutosync();
+                renderRules();
+            } else {
+                logEvent(`[fail] rules.emit: ${j.error || "error"}`);
+                toast("rules.emit failed", "err");
+            }
+        }
+
+        async function openLatestProof() {
+            const r = await fetch(`${API_BASE}/api/proofs/latest-body`);
+            const j = await r.json();
+            if (!j.ok) { 
+                logEvent(`[fail] proof open: ${j.error}`); 
+                toast("No proofs to open", "warn"); 
+                return; 
+            }
+            try {
+                const json = JSON.parse(j.body);
+                showJsonModal(json, `Latest proof • ${j.file}`);
+            } catch {
+                showModal(j.body, `Latest proof • ${j.file}`);
+            }
+        }
+
+        async function actionAutosync() {
+            logEvent("[ui] autosync…");
+            const r = await fetch(`${API_BASE}/api/actions/autosync`, { method: "POST" });
+            const j = await r.json();
+            if (j.ok) {
+                toast("Docs autosync complete", "ok");
+                renderAutosync();
+                renderRules();
+            } else {
+                toast("Autosync failed", "err");
+            }
+        }
+
+        function showRulesDetails(state) {
+            const text = `rules: ${state.rules}
+last emit: ${state.ssotSha} / ${state.ssotAge}
+repo: ${state.repoSha} / ${state.repoAge}
+drift: ${state.drift}
+tips:
+  • Press E to emit rules
+  • Commit SSOT changes when pre-commit passes`;
+            showModal(text, "SSOT Rules");
+        }
+
+        // ---------------- Legend modal ----------------
+        const legendModal = document.getElementById("legend-modal");
+        document.getElementById("legend-close").onclick = ()=> legendModal.classList.remove("open");
+        function showLegend(){ legendModal.classList.add("open"); }
+
+        // ---------------- Guidance: compute next actions ----------------
+        const guidanceBody = document.getElementById("guidance-body");
+        document.getElementById("guidance-refresh").onclick = refreshGuidance;
+        async function refreshGuidance(){
+            const [lm, groq, ssot, proofs] = await Promise.allSettled([
+                fetch(`${API_BASE}/api/lm/models?cb=${Date.now()}`).then(r=>r.json()).catch(()=>null),
+                fetch(`${API_BASE}/api/groq/model?cb=${Date.now()}`).then(r=>r.json()).catch(()=>null),
+                fetch(`${API_BASE}/api/ssot/status?cb=${Date.now()}`).then(r=>r.json()).catch(()=>null),
+                fetch(`${API_BASE}/api/proofs/summary?cb=${Date.now()}`).then(r=>r.json()).catch(()=>null),
+            ]);
+            const S = { lm: lm.value, groq: groq.value, ssot: ssot.value, proofs: proofs.value };
+            guidanceBody.innerHTML = buildGuidance(S);
+            bindGuidanceButtons();
+        }
+        function buildGuidance(S){
+            const recs = [];
+            // LM Studio
+            if (!S.lm?.ok || !S.lm.chat || !S.lm.embed) {
+                recs.push(`LM Studio: ${S.lm?.reason || "start chat + embed models"}. <button data-act="lm-checklist">Checklist</button>`);
+            }
+            // Groq
+            if (S.groq && !S.groq.ok) {
+                if (Array.isArray(S.groq.missing) && S.groq.missing.length) {
+                    recs.push(`Groq: missing ${S.groq.missing.join(", ")}. <button data-act="groq-checklist">Checklist</button>`);
+                } else {
+                    recs.push(`Groq: ${S.groq.error || "model not available"}. <button data-act="groq-checklist">Checklist</button>`);
+                }
+            }
+            // SSOT/Autosync
+            if (S.ssot?.ok && (S.ssot.drift > 0 || S.ssot.repoSha !== S.ssot.ssotSha || S.ssot.delta > 0)) {
+                recs.push(`Docs autosync: out of date (drift:${S.ssot.drift}, rules Δ:${S.ssot.delta}). <button data-act="emit">Emit rules</button> <button data-act="copy" data-cmd="make -s rules.emit">Copy: make -s rules.emit</button>`);
+            }
+            // Proofs / Guards
+            const p = S.proofs?.latest?.json || {};
+            if (p && (p.latency_ms === 0 || p.used === 0)) {
+                recs.push(`QA guard failing (latency=0/used=0). <button data-act="open-proof">Open latest proof</button>`);
+            }
+            if (!recs.length) recs.push("All green. No actions required.");
+            return `<ul class="recs">${recs.map(r=>`<li>${r} <span class="row-actions"><button data-act="resolve">Resolve</button> <button data-act="snooze">Snooze 30m</button></span></li>`).join("")}</ul>`;
+        }
+        function bindGuidanceButtons(){
+            guidanceBody.querySelectorAll("button[data-act='emit']").forEach(b=>b.onclick = actionEmitRules);
+            guidanceBody.querySelectorAll("button[data-act='copy']").forEach(b=>b.onclick = () => { navigator.clipboard.writeText(b.dataset.cmd||""); addNotif("ok","Copied: "+(b.dataset.cmd||"")); });
+            guidanceBody.querySelectorAll("button[data-act='open-proof']").forEach(b=>b.onclick = openLatestProof);
+            guidanceBody.querySelectorAll("button[data-act='lm-checklist']").forEach(b=>b.onclick = showLmChecklist);
+            guidanceBody.querySelectorAll("button[data-act='groq-checklist']").forEach(b=>b.onclick = showGroqChecklist);
+            guidanceBody.querySelectorAll("button[data-act='resolve']").forEach(b=>b.onclick = ()=> b.closest('li')?.remove());
+            guidanceBody.querySelectorAll("button[data-act='snooze']").forEach(b=>b.onclick = ()=> { addNotif("info","Snoozed: "+(b.closest('li')?.textContent||"")); b.closest('li')?.remove(); });
+        }
+
+        function showLmChecklist() {
+            logEvent("LM Studio checklist:\n• Start chat model (e.g., qwen3-8b-instruct)\n• Start embed model (e.g., qwen3-embedding-0.6b)\n• Verify /v1/models");
+        }
+
+        function showGroqChecklist() {
+            logEvent("Groq checklist:\n• export GROQ_API_KEY=…\n• export GROQ_MODEL=llama-3.1-70b-versatile\n• curl /api/groq/model → ok:true");
+        }
+
+        // Initial render
+        renderLm();
+        renderGroq();
+        renderAgentPM();
+        renderStoryMaker();
+        renderRules();
+        renderProofs();
+        renderAutosync();
+        renderGuards();
+
+        // SSE: refresh affected tiles only
+        const es = new EventSource(`${API_BASE}/api/events`);
+        es.addEventListener("changed", (e) => {
+            try {
+                const msg = JSON.parse(e.data || "{}");
+                if (!msg.topic) return;
+                // Cheap routing by path
+                if (/^docs\/SSOT/.test(msg.file) || /^rules\//.test(msg.file)) {
+                    renderAutosync();
+                    renderRules();
+                    addNotif("info","SSOT changed");
+                    refreshGuidance();
+                }
+                if (/^docs\/proofs\/agentpm\//.test(msg.file)) {
+                    renderProofs();
+                    addNotif("ok","New proof created");
+                    refreshGuidance();
+                }
+            } catch {}
+        });
+
+        // Light heartbeat to keep tiles fresh even without file changes (60s)
+        setInterval(() => {
+            renderLm();
+            renderGroq();
+            renderRules();
+            renderProofs();
+            renderAutosync();
+            renderGuards();
+        }, 60000);
+
+        // --- Smart notifications based on tile states ----------------
+        async function smartNotify(){
+            const a = await (await fetch(`${API_BASE}/api/ssot/status?cb=${Date.now()}`)).json();
+            const g = await (await fetch(`${API_BASE}/api/proofs/summary?cb=${Date.now()}`)).json();
+            if (a?.ok) {
+                if (a.drift > 0) addNotif("warn", `SSOT drift: ${a.drift} file(s)`);
+                if (a.repoSha !== a.ssotSha) addNotif("warn", "Docs out of date (SSOT vs repo)");
+            }
+            if (g?.ok) {
+                // guards are separate tile; we just hint on zero ms or empty used in latest
+                const p = g.latest?.json || {};
+                if (p && (p.latency_ms === 0 || p.used === 0)) addNotif("err", "QA guard failing (see tile)");
+            }
+            renderNotifs();
+        }
+        setTimeout(smartNotify, 800); // initial hint
+
+        // Keybindings
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key === "q") { window.close && window.close(); }
+            if (ev.key === "E") actionEmitRules();
+            if (ev.key === "P") openLatestProof();
+            if (ev.key === "L") showLmChecklist();
+            if (ev.key === "G") showGroqChecklist();
+            if (ev.key === "H") toggleLegend();
+        });
+        
+        // Toggle compact legend
+        function toggleLegend() {
+            const legend = document.getElementById('legend-overlay');
+            legend.classList.toggle('show');
+        }
+
+        // click-to-act bindings
+        document.getElementById("tile-rules").addEventListener("click", async () => {
+            // fetch current status then open details modal with an action hint
+            const r = await fetch(`${API_BASE}/api/ssot/status?cb=${Date.now()}`); 
+            const j = await r.json();
+            if (j?.ok) showRulesDetails(j); else actionEmitRules();
+        });
+        document.getElementById("tile-proofs").addEventListener("click", openLatestProof);
+        document.getElementById("tile-autosync").addEventListener("click", actionAutosync);
+
+        // Initialize guidance and persistent notifications
+        refreshGuidance(); 
+        renderNotifs();
+
+        // === Resizable guidance via splitter ===
+        (function(){
+            const root = document.getElementById('app-root');
+            const splitter = document.getElementById('splitter');
+            const min = 280, max = 720; // min/max width of guidance
+            let isDrag = false;
+
+            function setGuidanceWidth(px){
+                const w = Math.min(max, Math.max(min, px));
+                // Convert to grid template columns: tiles | splitter | guidance
+                root.style.gridTemplateColumns = `1fr 6px ${w}px`;
+                try { localStorage.setItem('ui.guidance.w', String(w)); } catch {}
+            }
+
+            splitter?.addEventListener('mousedown', (e)=>{
+                isDrag = true; document.body.style.userSelect = 'none';
+            });
+            window.addEventListener('mousemove', (e)=>{
+                if (!isDrag) return;
+                const gw = window.innerWidth - e.clientX; // distance from mouse to right edge
+                setGuidanceWidth(gw);
+            });
+            window.addEventListener('mouseup', ()=>{
+                isDrag = false; document.body.style.userSelect = '';
+            });
+
+            // Restore last width
+            const saved = parseInt(localStorage.getItem('ui.guidance.w')||'0',10);
+            if (saved) setGuidanceWidth(saved);
+        })();
+
+        // === Hotkeys: toggle guidance / compact mode ===
+        //  T → toggle guidance visibility
+        //  C → compact tiles (reduce gutters)
+        (function(){
+            const root = document.getElementById('app-root');
+            const guidance = document.getElementById('guidance');
+            const splitter = document.getElementById('splitter');
+            let compact = false, hidden = false;
+
+            function toggleGuidance(){
+                hidden = !hidden;
+                guidance.style.display = hidden ? 'none' : '';
+                splitter.style.display  = hidden ? 'none' : '';
+                // Expand tiles when hidden
+                root.style.gridTemplateColumns = hidden ? '1fr' : (root.style.gridTemplateColumns || '');
+            }
+            function toggleCompact(){
+                compact = !compact;
+                document.documentElement.classList.toggle('compact', compact);
+            }
+            window.addEventListener('keydown', (ev)=>{
+                if (ev.key === 'T') toggleGuidance();
+                if (ev.key === 'C') toggleCompact();
+            });
+        })();
+    </script>
+</body>
+</html>

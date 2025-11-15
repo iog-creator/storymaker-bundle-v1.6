@@ -6,6 +6,7 @@ from typing import List, Optional
 import os, time, json, math
 
 router = APIRouter(prefix="/api/search", tags=["search"])
+router_v1 = APIRouter(prefix="/api/v1/search", tags=["search-v1"])
 
 OPENAI_API_BASE = os.environ.get("OPENAI_API_BASE", "http://127.0.0.1:1234/v1")
 OPENAI_API_KEY  = os.environ.get("OPENAI_API_KEY", "lm-studio")
@@ -36,16 +37,44 @@ def cosine(a, b):
     nb = math.sqrt(sum(y*y for y in b)) or 1e-12
     return dot/(na*nb)
 
+# API v1 endpoints (primary)
+@router_v1.post("/embed")
+def post_embed_v1(body: EmbedIn):
+    return _embed_handler(body)
+
+@router_v1.post("/rerank")
+def post_rerank_v1(body: RerankIn):
+    return _rerank_handler(body)
+
+# Legacy endpoints (deprecated)
 @router.post("/embed")
-def post_embed(body: EmbedIn):
+def post_embed_legacy(body: EmbedIn):
+    response = _embed_handler(body)
+    if hasattr(response, 'headers'):
+        response.headers["Deprecation"] = "true"
+        response.headers["Sunset"] = "2025-12-31"
+        response.headers["Link"] = "</api/v1/search/embed>; rel=\"successor-version\""
+    return response
+
+@router.post("/rerank")
+def post_rerank_legacy(body: RerankIn):
+    response = _rerank_handler(body)
+    if hasattr(response, 'headers'):
+        response.headers["Deprecation"] = "true"
+        response.headers["Sunset"] = "2025-12-31"
+        response.headers["Link"] = "</api/v1/search/rerank>; rel=\"successor-version\""
+    return response
+
+def _embed_handler(body: EmbedIn):
     vec, ms = embed_text(body.text)
+    # Validate dims:1024 requirement
+    assert len(vec) == 1024, f"Expected 1024 dims, got {len(vec)}"
     env = {"status":"ok","data":{"embedding":vec,"dims":len(vec),"model":EMBED_MODEL},
            "meta":{"provider":"lm-studio","embedding_dims":len(vec),"latency_ms":ms}}
     (PROOFS / f"embed_{int(time.time())}.json").write_text(json.dumps(env, indent=2), "utf-8")
     return env
 
-@router.post("/rerank")
-def post_rerank(body: RerankIn):
+def _rerank_handler(body: RerankIn):
     qv, qms = embed_text(body.query)
     scored = []
     tot = qms

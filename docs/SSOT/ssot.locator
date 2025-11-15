@@ -1,0 +1,4 @@
+# Canonical SSOT location for both workspaces (do not change without PR)
+REL=docs/SSOT/ssot.v1.2.yaml
+
+

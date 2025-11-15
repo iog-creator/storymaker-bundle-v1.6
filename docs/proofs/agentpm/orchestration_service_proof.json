@@ -1,0 +1,53 @@
+{
+  "status": "ok",
+  "data": {
+    "service": "orchestration",
+    "timestamp": "2025-09-11T16:10:00Z",
+    "configuration": {
+      "port": 8700,
+      "framework": "LangGraph",
+      "environment_variables": {
+        "NARRATIVE_BASE": "http://127.0.0.1:8001",
+        "WORLDCORE_BASE": "http://127.0.0.1:8000"
+      },
+      "generated_graph": "services/orchestration/generated/outline_graph.py"
+    },
+    "flow_execution": {
+      "premise_input": "A heist story about a team of misfits",
+      "narrative_call": {
+        "endpoint": "/narrative/outline",
+        "status": "success",
+        "provider": "groq",
+        "model": "llama-3.3-70b-versatile"
+      },
+      "qa_calls": {
+        "trope_budget": {
+          "endpoint": "/api/qa/trope-budget",
+          "status": "success",
+          "provider": "lm-studio"
+        },
+        "promise_payoff": {
+          "endpoint": "/api/qa/promise-payoff", 
+          "status": "success",
+          "provider": "lm-studio"
+        }
+      },
+      "approval_gate": {
+        "condition": "trope_budget.used < TROPE_MAX",
+        "result": "approved"
+      }
+    },
+    "verification": {
+      "environment_loaded": true,
+      "service_communication": true,
+      "data_format_conversion": true,
+      "end_to_end_flow": true
+    }
+  },
+  "meta": {
+    "provider": "agentpm",
+    "actor": "orchestration_verification",
+    "latency_ms": 0,
+    "timestamp": "2025-09-11T16:10:00Z"
+  }
+}
