@@ -1,0 +1,9 @@
+{
+  "id": "w_danarsia",
+  "type": "World",
+  "name": "Danarsia",
+  "status": "CANON",
+  "traits": {},
+  "world_id": "w_danarsia",
+  "canon_path": "docs/canon/Danarsia_Universe.txt"
+}
