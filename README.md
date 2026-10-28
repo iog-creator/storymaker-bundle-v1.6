@@ -7,6 +7,10 @@ AgentPM is a **fully functional** local-first AI project management system that 
 > **SSOT:** The canonical plan for StoryMaker + AgentPM lives at  
 > `docs/SSOT/MASTER_PLAN.md` (v1.6 FINAL). Rebuilds must follow that document exactly.
 >
+> **Author world bible:** `docs/canon/Danarsia_Universe.txt` (also
+> `docs/canon/Danarsia_World_Bible.md`). WorldCore seed pointer:
+> `docs/seeds/danarsia.json` → load via `services/worldcore/seed.py`.
+>
 > **AgentPM Rails:** Rules are authored in `docs/SSOT/rules/*.mdc` and are
 > synced into `.cursor/rules/` by `make rules-sync`. Proofs are **only**
 > written to `docs/proofs/agentpm/` (workspace proofs folder is a symlink).
